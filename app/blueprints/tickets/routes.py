@@ -40,6 +40,35 @@ def create_ticket():
     
     return ticket_schema.jsonify(new_ticket), 201
 
+@tickets_bp.route("/<int:ticket_id>", methods=["PUT"])
+def update_ticket(ticket_id):
+    # Validate existance of ticket
+    ticket = db.session.get(Ticket, ticket_id)
+    if not ticket:
+        return jsonify({"error": f"No ticket found with id of {ticket_id}"}), 404
+    
+    data = request.get_json()
+    if data is None:
+        return jsonify({"error": "Missing request body JSON"}), 400
+    
+    try:
+        ticket_data: Dict = ticket_schema.load(data)
+    except ValidationError as e:
+        return jsonify(e.messages), 400
+    
+    # Go through each column of request payload and set it in selected ticket
+    for k,v in ticket_data.items():
+        setattr(ticket, k, v)
+        
+    db.session.commit()
+        
+    return ticket_schema.jsonify(ticket), 200
+
+
+    
+    
+    
+
 
 
     
