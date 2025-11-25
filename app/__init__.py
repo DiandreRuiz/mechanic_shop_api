@@ -1,5 +1,5 @@
 from flask import Flask
-from extensions import ma, db
+from app.extensions import ma, db
 
 def create_app(config_name: str):
     app = Flask(__name__)
