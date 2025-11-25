@@ -14,4 +14,12 @@ def get_tickets():
     
     return tickets_schema.jsonify(tickets), 200
 
+@tickets_bp.route("/<int:ticket_id>", methods=["GET"])
+def get_ticket(ticket_id):
+    ticket = db.session.get(Ticket, ticket_id)
+    if not ticket:
+        return jsonify({"error": f"No ticket found with ticket_id: {ticket_id}"}), 404
+    else:
+        return ticket_schema.jsonify(ticket), 200
+
     
