@@ -64,7 +64,16 @@ def update_ticket(ticket_id):
         
     return ticket_schema.jsonify(ticket), 200
 
+@tickets_bp.route("/<int:ticket_id>", methods=["DELETE"])
+def delete_ticket(ticket_id):
+    ticket = db.session.get(Ticket, ticket_id)
+    if not ticket:
+        return jsonify({"error": f"Could not find ticket with ticket_id: {ticket_id}"})
 
+    db.session.delete(ticket)
+    db.session.commit()
+    
+    return jsonify({"message": f"Successfully deleted ticket with ticket_id: {ticket_id}"})
     
     
     
