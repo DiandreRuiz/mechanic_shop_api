@@ -13,3 +13,12 @@ def get_mechanics():
     mechanics = db.session.execute(query).scalars().all()
     
     return mechanics_schema.jsonify(mechanics), 200
+
+@mechanics_bp.route("/<int:mechanic_id>", methods=["GET"])
+def get_mechanic(mechanic_id):
+    mechanic = db.session.get(Mechanic, mechanic_id)
+    if not mechanic:
+        return jsonify({"error": f"No mechanic found with id: {mechanic_id}"}), 404
+    else:
+        return mechanic_schema.jsonify(mechanic), 200
+    
