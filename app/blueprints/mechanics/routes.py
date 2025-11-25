@@ -39,7 +39,7 @@ def create_mechanic():
     query = select(Mechanic).where(Mechanic.email == mechanic_data["email"])
     existing_mechanic = db.session.execute(query).scalars().all()
     if existing_mechanic:
-        return jsonify({"error": f"Mechanic already exists with email: {mechanic_data["email"]}"})
+        return jsonify({"error": f"Mechanic already exists with email: {mechanic_data["email"]}"}), 400
     
     # Create new entry
     mechanic = Mechanic(**mechanic_data)
@@ -73,6 +73,19 @@ def update_mechanic(mechanic_id):
     db.session.commit()
     
     return mechanic_schema.jsonify(mechanic), 200
+
+@mechanics_bp.route("/<int:mechanic_id>", methods=["DELETE"])
+def delete_mechanic(mechanic_id):
+    mechanic = db.session.get(Mechanic, mechanic_id)
+    if not mechanic:
+        return jsonify({"error": f"No mechanic with id: {mechanic_id} found"}), 404
+    else:
+        db.session.delete(mechanic)
+        db.session.commit()
+    
+    return jsonify({"message": f"Mechanic with id: {mechanic_id} successfully deleted!"}), 200
+
+
         
     
     
