@@ -14,6 +14,14 @@ def get_customers():
     
     return customers_schema.jsonify(members), 200
 
+@customers_bp.route("/<int:customer_id>", methods=["GET"])
+def get_customer(customer_id):
+    customer = db.session.get(Customer, customer_id)
+    if not customer:
+        return jsonify({"error": f"Could not find customer w/ customer_id {customer_id}"}), 404
+    else:
+        return customer_schema.jsonify(customer), 200
+
 @customers_bp.route("/", methods=["POST"])
 def add_customer():
     # Validate request body
