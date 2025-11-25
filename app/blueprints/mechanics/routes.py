@@ -22,3 +22,59 @@ def get_mechanic(mechanic_id):
     else:
         return mechanic_schema.jsonify(mechanic), 200
     
+@mechanics_bp.route("/", methods=["POST"])
+def create_mechanic():
+    # Validate body existance
+    data = request.get_json()
+    if data is None:
+        return jsonify({"error": "Missing request JSON body"}), 400
+    
+    # Validate body schema
+    try:
+        mechanic_data = mechanic_schema.load(data)
+    except ValidationError as e:
+        return jsonify(e.messages), 400
+    
+    # Validate uniqueness constraints
+    query = select(Mechanic).where(Mechanic.email == mechanic_data["email"])
+    existing_mechanic = db.session.execute(query).scalars().all()
+    if existing_mechanic:
+        return jsonify({"error": f"Mechanic already exists with email: {mechanic_data["email"]}"})
+    
+    # Create new entry
+    mechanic = Mechanic(**mechanic_data)
+    db.session.add(mechanic)
+    db.session.commit()
+    
+    return mechanic_schema.jsonify(mechanic), 201
+
+@mechanics_bp.route("/<int:mechanic_id>", methods=["PUT"])
+def update_mechanic(mechanic_id):
+    # Validate mechanic exists
+    mechanic = db.session.get(Mechanic, mechanic_id)
+    if not mechanic:
+        return jsonify({"error": f"No mechanic found with mechanic_id: {mechanic_id}"}), 404
+    
+    # Validate data existance
+    data = request.get_json()
+    if data is None:
+        return jsonify({"error": "Missing body JSON"}), 400
+    
+    # Validate data schema
+    try:
+        mechanic_data: Dict = mechanic_schema.load(data)
+    except ValidationError as e:
+        return jsonify(e.messages), 400
+    
+    # Update appropriate entry
+    for k,v in mechanic_data.items():
+        setattr(mechanic, k, v)
+    
+    db.session.commit()
+    
+    return mechanic_schema.jsonify(mechanic), 200
+        
+    
+    
+    
+    
