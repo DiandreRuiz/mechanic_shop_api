@@ -30,7 +30,7 @@ def add_customer():
     query = select(Customer).where(Customer.email == customer_data["email"])
     existing_customer = db.session.execute(query).scalars().all()
     if existing_customer:
-        return jsonify({"error": f"Account with email '{Customer.email}' already exists."})
+        return jsonify({"error": f"Account with email '{Customer.email}' already exists."}), 400
 
     # Validated, create new customer row
     new_customer = Customer(**customer_data)
@@ -38,3 +38,14 @@ def add_customer():
     db.session.commit()
     
     return customer_schema.jsonify(new_customer), 201
+
+@customers_bp.route("/<int:customer_id>", methods=["DELETE"])
+def delete_customer(customer_id):
+    customer = db.session.get(Customer, customer_id)
+    if not customer:
+        return jsonify({"error": f"No customer with customer_id: {customer_id} found"}), 404
+    else:
+        db.session.delete(customer)
+        db.session.commit()
+    return jsonify({"message": f"Customer with customer_id: {customer_id} deleted"}), 200
+    
