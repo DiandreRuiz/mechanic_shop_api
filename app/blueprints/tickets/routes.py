@@ -90,11 +90,11 @@ def assign_mechanic(ticket_id, mechanic_id):
         "ticket_id": ticket_id,
         "mechanic_id": mechanic_id
     }), 200
-    
-    
-    
 
-@tickets_bp.route("/<int:ticket_id>", methods=["DELETE"])
+
+# NOTE: This code opens an endpoint capable of deleting a ticket, not sure we want to do that
+
+""" @tickets_bp.route("/<int:ticket_id>", methods=["DELETE"])
 def delete_ticket(ticket_id):
     ticket = db.session.get(Ticket, ticket_id)
     if not ticket:
@@ -103,7 +103,7 @@ def delete_ticket(ticket_id):
     db.session.delete(ticket)
     db.session.commit()
     
-    return jsonify({"message": f"Successfully deleted ticket with ticket_id: {ticket_id}"})
+    return jsonify({"message": f"Successfully deleted ticket with ticket_id: {ticket_id}"}) """
     
     
     
