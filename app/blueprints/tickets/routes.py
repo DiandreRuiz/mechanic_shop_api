@@ -90,6 +90,29 @@ def assign_mechanic(ticket_id, mechanic_id):
         "ticket_id": ticket_id,
         "mechanic_id": mechanic_id
     }), 200
+    
+@tickets_bp.route("/<int:ticket_id>/remove-mechanic/<int:mechanic_id>", methods=["PUT"])
+def remove_mechanic(ticket_id, mechanic_id):
+    ticket = db.session.get(Ticket, ticket_id)
+    mechanic = db.session.get(Mechanic, mechanic_id)
+    
+    if not ticket:
+        return jsonify({"error": f"Could not locate Ticket with id: {ticket_id}"}), 404
+    if not mechanic:
+        return jsonify({"error": f"Could not locate mechanic with id: {mechanic_id}"}), 404
+    
+    if mechanic not in ticket.mechanics:
+        return jsonify({"error": f"Mechanic id: {mechanic_id} not found in mechanics for Ticket id: {ticket_id}"}), 404
+    
+    ticket.mechanics.remove(mechanic)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Mechanic successfully removed from ticket.",
+        "ticket_id": ticket_id,
+        "mechanic_id": mechanic_id
+    }), 200
+        
 
 
 # NOTE: This code opens an endpoint capable of deleting a ticket, not sure we want to do that
