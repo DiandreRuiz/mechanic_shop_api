@@ -77,11 +77,17 @@ def update_mechanic(mechanic_id):
 @mechanics_bp.route("/<int:mechanic_id>", methods=["DELETE"])
 def delete_mechanic(mechanic_id):
     mechanic = db.session.get(Mechanic, mechanic_id)
+    
     if not mechanic:
         return jsonify({"error": f"No mechanic with id: {mechanic_id} found"}), 404
-    else:
-        db.session.delete(mechanic)
-        db.session.commit()
+    
+    # Remove mechanic from assigned tickets
+    if mechanic.tickets:
+        for ticket in mechanic.tickets:
+            ticket.mechanics.remove(mechanic)
+    
+    db.session.delete(mechanic)
+    db.session.commit()
     
     return jsonify({"message": f"Mechanic with id: {mechanic_id} successfully deleted!"}), 200
 

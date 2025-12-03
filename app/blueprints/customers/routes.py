@@ -50,10 +50,6 @@ def add_customer():
 
 @customers_bp.route("/<int:customer_id>", methods=["PUT"])
 def update_customer(customer_id):
-    # 1. validate existance of customer
-    # 2. validate presence of data for update
-    # 3. validate schema of data for update
-    # 4. perform update of row
     customer = db.session.get(Customer, customer_id)
     if not customer:
         return jsonify({"error": f"Could not find customer with customer_id of {customer_id}"}), 404
@@ -74,7 +70,7 @@ def update_customer(customer_id):
     db.session.commit()
     return customer_schema.jsonify(customer), 200
 
-@customers_bp.route("/<int:customer_id>", methods=["DELETE"])
+""" @customers_bp.route("/<int:customer_id>", methods=["DELETE"])
 def delete_customer(customer_id):
     customer = db.session.get(Customer, customer_id)
     if not customer:
@@ -82,4 +78,4 @@ def delete_customer(customer_id):
     else:
         db.session.delete(customer)
         db.session.commit()
-    return jsonify({"message": f"Customer with customer_id: {customer_id} deleted"}), 200
+    return jsonify({"message": f"Customer with customer_id: {customer_id} deleted"}), 200 """
