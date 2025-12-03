@@ -3,7 +3,7 @@ from app.extensions import db
 from . import tickets_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
-from app.models import Ticket
+from app.models import Ticket, Mechanic
 from sqlalchemy import select
 from typing import Dict
 
@@ -63,6 +63,24 @@ def update_ticket(ticket_id):
     db.session.commit()
         
     return ticket_schema.jsonify(ticket), 200
+
+@tickets_bp.route("/<int:ticket_id>/assign-mechanic/<int:mechanic_id>", methods=["PUT"])
+def assign_mechanic(ticket_id, mechanic_id):
+    ticket = db.session.get(Ticket, ticket_id)
+    mechanic = db.session.get(Mechanic, mechanic_id)
+    
+    if not ticket:
+        return jsonify({"error": f"Could not locate Ticket with id: {ticket_id}"}), 404
+    if not mechanic:
+        return jsonify({"error": f"Could not locate mechanic with id: {mechanic_id}"}), 404
+    
+    ticket.mechanics.append(mechanic)
+    db.session.commit()
+    
+    return ticket_schema.jsonify(ticket), 200
+    
+    
+    
 
 @tickets_bp.route("/<int:ticket_id>", methods=["DELETE"])
 def delete_ticket(ticket_id):
