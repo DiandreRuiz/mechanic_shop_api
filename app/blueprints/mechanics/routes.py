@@ -39,7 +39,7 @@ def create_mechanic():
     query = select(Mechanic).where(Mechanic.email == mechanic_data["email"])
     existing_mechanic = db.session.execute(query).scalars().all()
     if existing_mechanic:
-        return jsonify({"error": f"Mechanic already exists with email: {mechanic_data["email"]}"}), 400
+        return jsonify({"error": f"Mechanic already exists with email: {mechanic_data['email']}"}), 400
     
     # Create new entry
     mechanic = Mechanic(**mechanic_data)
