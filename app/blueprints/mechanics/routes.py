@@ -82,6 +82,7 @@ def delete_mechanic(mechanic_id):
         return jsonify({"error": f"No mechanic with id: {mechanic_id} found"}), 404
     
     # Remove mechanic from assigned tickets
+    # NOT SURE IF THIS IS NEEDED OR HANDLED BY PREVIOUSLY DEFINED ORM RELATIONSHIPS
     if mechanic.tickets:
         for ticket in mechanic.tickets:
             ticket.mechanics.remove(mechanic)
