@@ -74,10 +74,22 @@ def assign_mechanic(ticket_id, mechanic_id):
     if not mechanic:
         return jsonify({"error": f"Could not locate mechanic with id: {mechanic_id}"}), 404
     
+    # Prevent duplicate linking
+    if mechanic in ticket.mechanics:
+        return jsonify({
+            "message": "Mechanic is already assigned to this ticket.",
+            "ticket_id": ticket_id,
+            "mechanic_id": mechanic_id
+        }), 200
+    
     ticket.mechanics.append(mechanic)
     db.session.commit()
     
-    return ticket_schema.jsonify(ticket), 200
+    return jsonify({
+        "message": "Mechanic successfully assigned to ticket.",
+        "ticket_id": ticket_id,
+        "mechanic_id": mechanic_id
+    }), 200
     
     
     
