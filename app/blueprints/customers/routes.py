@@ -39,7 +39,7 @@ def add_customer():
     query = select(Customer).where(Customer.email == customer_data["email"])
     existing_customer = db.session.execute(query).scalars().all()
     if existing_customer:
-        return jsonify({"error": f"Account with email '{Customer.email}' already exists."}), 400
+        return jsonify({"error": f"Account with email '{customer_data['email']}' already exists."}), 400
 
     # Validated, create new customer row
     new_customer = Customer(**customer_data)
