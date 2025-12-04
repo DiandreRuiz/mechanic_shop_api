@@ -1,5 +1,5 @@
 from app.blueprints.tickets.schemas import ticket_schema, tickets_schema
-from app.extensions import db
+from app.extensions import db, limiter
 from . import tickets_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
@@ -90,8 +90,10 @@ def assign_mechanic(ticket_id, mechanic_id):
         "ticket_id": ticket_id,
         "mechanic_id": mechanic_id
     }), 200
-    
+
+# Rate limited to prevent mass deletion errors
 @tickets_bp.route("/<int:ticket_id>/remove-mechanic/<int:mechanic_id>", methods=["PUT"])
+@limiter.limit("3 per hour")
 def remove_mechanic(ticket_id, mechanic_id):
     ticket = db.session.get(Ticket, ticket_id)
     mechanic = db.session.get(Mechanic, mechanic_id)
