@@ -11,7 +11,7 @@ from typing import Dict
 # Cache results to ease strain on popular query
 @customers_bp.route("/", methods=["GET"])
 @limiter.limit("5 per minute")
-@cache.cached(timeout=10)
+@cache.cached(timeout=60)
 def get_customers():
     query = select(Customer)
     members = db.session.execute(query).scalars().all()
@@ -19,6 +19,7 @@ def get_customers():
     return customers_schema.jsonify(members), 200
 
 @customers_bp.route("/<int:customer_id>", methods=["GET"])
+@cache.cached(timeout=60)
 def get_customer(customer_id):
     customer = db.session.get(Customer, customer_id)
     if not customer:

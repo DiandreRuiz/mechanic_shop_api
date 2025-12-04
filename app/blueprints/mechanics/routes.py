@@ -11,7 +11,7 @@ from typing import Dict
 # Cache results to ease strain on popular query
 @mechanics_bp.route("/", methods=["GET"])
 @limiter.limit("5 per hour")
-@cache.cached(timeout=10)
+@cache.cached(timeout=60)
 def get_mechanics():
     query = select(Mechanic)
     mechanics = db.session.execute(query).scalars().all()
@@ -19,6 +19,7 @@ def get_mechanics():
     return mechanics_schema.jsonify(mechanics), 200
 
 @mechanics_bp.route("/<int:mechanic_id>", methods=["GET"])
+@cache.cached(timeout=60)
 def get_mechanic(mechanic_id):
     mechanic = db.session.get(Mechanic, mechanic_id)
     if not mechanic:
@@ -79,6 +80,7 @@ def update_mechanic(mechanic_id):
     return mechanic_schema.jsonify(mechanic), 200
 
 @mechanics_bp.route("/<int:mechanic_id>", methods=["DELETE"])
+@limiter.limit("1 per hour")
 def delete_mechanic(mechanic_id):
     mechanic = db.session.get(Mechanic, mechanic_id)
     
