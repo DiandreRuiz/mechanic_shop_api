@@ -1,5 +1,5 @@
 from app.blueprints.customers.schemas import customer_schema, customers_schema
-from app.extensions import db, limiter
+from app.extensions import db, limiter, cache
 from . import customers_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
@@ -9,6 +9,7 @@ from typing import Dict
 
 # Rate limit to prevent overloading servers with extra requests
 @customers_bp.route("/", methods=["GET"])
+@cache.cached(timeout=10)
 @limiter.limit("5 per minute")
 def get_customers():
     query = select(Customer)
