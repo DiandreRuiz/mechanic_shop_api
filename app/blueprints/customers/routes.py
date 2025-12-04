@@ -1,5 +1,5 @@
 from app.blueprints.customers.schemas import customer_schema, customers_schema
-from app.extensions import db
+from app.extensions import db, limiter
 from . import customers_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
@@ -7,7 +7,9 @@ from app.models import Customer
 from sqlalchemy import select
 from typing import Dict
 
+# Rate limit to prevent overloading servers with extra requests
 @customers_bp.route("/", methods=["GET"])
+@limiter.limit("5 per minute")
 def get_customers():
     query = select(Customer)
     members = db.session.execute(query).scalars().all()
