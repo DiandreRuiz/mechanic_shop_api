@@ -18,6 +18,7 @@ def get_mechanics():
     
     return mechanics_schema.jsonify(mechanics), 200
 
+# Cache individual mechanic lookups to reduce database queries for frequently accessed records
 @mechanics_bp.route("/<int:mechanic_id>", methods=["GET"])
 @cache.cached(timeout=60)
 def get_mechanic(mechanic_id):
@@ -79,6 +80,7 @@ def update_mechanic(mechanic_id):
     
     return mechanic_schema.jsonify(mechanic), 200
 
+# Rate limit to prevent accidental or malicious deletions of mechanics
 @mechanics_bp.route("/<int:mechanic_id>", methods=["DELETE"])
 @limiter.limit("1 per hour")
 def delete_mechanic(mechanic_id):

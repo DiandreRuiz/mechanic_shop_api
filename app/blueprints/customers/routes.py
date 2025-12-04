@@ -18,6 +18,7 @@ def get_customers():
     
     return customers_schema.jsonify(members), 200
 
+# Cache individual customer lookups to reduce database queries for frequently accessed records
 @customers_bp.route("/<int:customer_id>", methods=["GET"])
 @cache.cached(timeout=60)
 def get_customer(customer_id):
