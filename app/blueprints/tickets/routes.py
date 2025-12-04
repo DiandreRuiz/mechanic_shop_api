@@ -1,6 +1,6 @@
+from . import tickets_bp
 from app.blueprints.tickets.schemas import ticket_schema, tickets_schema
 from app.extensions import db, limiter, cache
-from . import tickets_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
 from app.models import Ticket, Mechanic
