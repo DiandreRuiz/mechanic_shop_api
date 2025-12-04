@@ -9,8 +9,8 @@ from typing import Dict
 
 # Rate limit to prevent overloading servers with extra requests
 @customers_bp.route("/", methods=["GET"])
-@cache.cached(timeout=10)
 @limiter.limit("5 per minute")
+@cache.cached(timeout=10)
 def get_customers():
     query = select(Customer)
     members = db.session.execute(query).scalars().all()
