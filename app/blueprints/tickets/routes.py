@@ -1,5 +1,5 @@
 from app.blueprints.tickets.schemas import ticket_schema, tickets_schema
-from app.extensions import db, limiter
+from app.extensions import db, limiter, cache
 from . import tickets_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
@@ -7,6 +7,10 @@ from app.models import Ticket, Mechanic
 from sqlalchemy import select
 from typing import Dict
 
+# Rate limit to prevent overloading servers with extra requests
+# Cache results to ease strain on popular query
+@limiter.limit("5 per hour")
+@cache.cached(timeout=10)
 @tickets_bp.route("/", methods=["GET"])
 def get_tickets():
     query = select(Ticket)

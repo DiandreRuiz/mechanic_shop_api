@@ -8,6 +8,7 @@ from sqlalchemy import select
 from typing import Dict
 
 # Rate limit to prevent overloading servers with extra requests
+# Cache results to ease strain on popular query
 @customers_bp.route("/", methods=["GET"])
 @limiter.limit("5 per minute")
 @cache.cached(timeout=10)

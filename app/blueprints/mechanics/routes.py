@@ -1,5 +1,5 @@
 from app.blueprints.mechanics.schemas import mechanic_schema, mechanics_schema
-from app.extensions import db
+from app.extensions import db, limiter, cache
 from . import mechanics_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
@@ -7,7 +7,11 @@ from app.models import Mechanic
 from sqlalchemy import select
 from typing import Dict
 
+# Rate limit to prevent overloading servers with extra requests
+# Cache results to ease strain on popular query
 @mechanics_bp.route("/", methods=["GET"])
+@limiter.limit("5 per hour")
+@cache.cached(timeout=10)
 def get_mechanics():
     query = select(Mechanic)
     mechanics = db.session.execute(query).scalars().all()
