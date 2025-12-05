@@ -1,10 +1,11 @@
 from app.blueprints.customers.schemas import customer_schema, customers_schema, login_schema
+
 from app.extensions import db, limiter, cache
 from app.utils.util import encode_token, token_required
 from . import customers_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
-from app.models import Customer
+from app.models import Customer, Ticket
 from sqlalchemy import select
 from typing import Dict
 
@@ -34,7 +35,8 @@ def login():
         return jsonify(response), 200
     else:
         return jsonify({"messages": "Invalid email or password"}), 401
-    
+  
+  
 # Rate limit to prevent overloading servers with extra requests
 # Cache results to ease strain on popular query
 @customers_bp.route("/", methods=["GET"])

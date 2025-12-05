@@ -1,9 +1,10 @@
 from . import tickets_bp
 from app.blueprints.tickets.schemas import ticket_schema, tickets_schema
 from app.extensions import db, limiter, cache
+from app.utils.util import token_required
 from flask import request, jsonify
 from marshmallow import ValidationError
-from app.models import Ticket, Mechanic
+from app.models import Ticket, Mechanic, Customer
 from sqlalchemy import select
 from typing import Dict
 
@@ -25,6 +26,19 @@ def get_ticket(ticket_id):
         return jsonify({"error": f"No ticket found with ticket_id: {ticket_id}"}), 404
     else:
         return ticket_schema.jsonify(ticket), 200
+    
+    
+@tickets_bp.route("/my-tickets", methods=["GET"])
+@token_required
+def get_my_tickets(customer_id):
+    customer = db.session.get(Customer, customer_id)
+    if not customer:
+        return jsonify({"error": "Could not find customer with supplied customer ID from your auth token"}), 404
+    
+    query = select(Ticket).where(Ticket.customer_id == customer.id)
+    tickets = db.session.execute(query).scalars().all()
+    
+    return tickets_schema.jsonify(tickets), 200
     
 @tickets_bp.route("/", methods=["POST"])
 def create_ticket():
