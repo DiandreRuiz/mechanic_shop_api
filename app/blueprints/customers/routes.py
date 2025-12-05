@@ -11,7 +11,6 @@ from typing import Dict
 
 @customers_bp.route("/login", methods=["POST"])
 def login():
-
     try:
         credentials = login_schema.load(request.get_json())
         username = credentials["email"]
@@ -105,13 +104,17 @@ def update_customer(customer_id):
     db.session.commit()
     return customer_schema.jsonify(customer), 200
 
-@customers_bp.route("/", methods=["DELETE"])
+# NOTE: Foreign Key constraint in ticket table violated by deleting this!
+# Needs cascading setttings set or manual deletion of those records here.
+# (Probably not a good idea regardless to have this functionality) 
+""" @customers_bp.route("/", methods=["DELETE"])
 @token_required
 def delete_customer(customer_id): # Receives customer_id from the token via the wrapper in ../utils/util.py
     customer = db.session.get(Customer, customer_id)
+    
     if not customer:
         return jsonify({"error": f"No customer with customer_id: {customer_id} found"}), 404
     else:
         db.session.delete(customer)
         db.session.commit()
-    return jsonify({"message": f"Customer with customer_id: {customer_id} deleted"}), 200
+    return jsonify({"message": f"Customer with customer_id: {customer_id} deleted"}), 200 """
