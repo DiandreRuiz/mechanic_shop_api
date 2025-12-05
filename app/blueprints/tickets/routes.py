@@ -65,7 +65,7 @@ def update_ticket(customer_id, ticket_id):
     if not ticket:
         return jsonify({"error": f"No ticket found with id of {ticket_id}"}), 404
     
-    if ticket.customer_id != customer_id:
+    if ticket.customer_id != int(customer_id):
         return jsonify({"error": "You are trying to alter a resource that you don't own (judged by auth token)"}), 401
     
     customer = db.session.get(Customer, customer_id)
