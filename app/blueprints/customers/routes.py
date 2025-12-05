@@ -1,4 +1,4 @@
-from app.blueprints.customers.schemas import customer_schema, customers_schema
+from app.blueprints.customers.schemas import customer_schema, customers_schema, login_schema
 from app.extensions import db, limiter, cache
 from app.utils.util import encode_token, token_required
 from . import customers_bp
@@ -11,13 +11,16 @@ from typing import Dict
 
 @customers_bp.route("/login", methods=["POST"])
 def login():
-    credentials = request.get_json()
-    if not credentials: return jsonify({"error": "Could not locate credentials for auth token encoding"})
+
     try:
+        credentials = login_schema.load(request.get_json())
         username = credentials["email"]
         password = credentials["password"]
+    except ValidationError as e:
+        return jsonify(e.messages), 400
     except KeyError:
         return jsonify({"error": "Invalid payload, expecting 'username' & 'password' keys to be present"}), 400
+    
     
     query = select(Customer).where(Customer.email == username)
     customer = db.session.execute(query).scalar_one_or_none() # Return the first scalar result or None

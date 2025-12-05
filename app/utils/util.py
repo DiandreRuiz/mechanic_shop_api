@@ -25,6 +25,7 @@ def token_required(f):
         # Look for token in authorization header
         if 'Authorization' in request.headers:
             token = request.headers['Authorization'].split(" ")[1]
+            print(token)
         
         if not token:
             return jsonify({"message": "Token is missing!"}), 401
