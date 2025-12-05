@@ -8,7 +8,7 @@ from app.models import Customer
 from sqlalchemy import select
 from typing import Dict
 
-""" 
+
 @customers_bp.route("/login", methods=["POST"])
 def login():
     credentials = request.get_json()
@@ -20,7 +20,18 @@ def login():
         return jsonify({"error": "Invalid payload, expecting 'username' & 'password' keys to be present"}), 400
     
     query = select(Customer).where(Customer.email == username)
-    user = db.session.execute(query).scalar_one_or_none() # Return the first scalar result or None """
+    customer = db.session.execute(query).scalar_one_or_none() # Return the first scalar result or None
+    
+    if customer and customer.password == password:
+        auth_token = encode_token(customer.id)
+        response = {
+            "status": "success",
+            "message": "Succesfully Logged In",
+            "auth_token": auth_token
+        }
+        return jsonify(response), 200
+    else:
+        return jsonify({"messages": "Invalid email or password"}), 401
     
     
 
