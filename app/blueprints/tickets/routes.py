@@ -27,7 +27,6 @@ def get_ticket(ticket_id):
     else:
         return ticket_schema.jsonify(ticket), 200
     
-    
 @tickets_bp.route("/my-tickets", methods=["GET"])
 @token_required
 def get_my_tickets(customer_id):
@@ -59,11 +58,20 @@ def create_ticket():
     return ticket_schema.jsonify(new_ticket), 201
 
 @tickets_bp.route("/<int:ticket_id>", methods=["PUT"])
-def update_ticket(ticket_id):
+@token_required
+def update_ticket(customer_id, ticket_id):
     # Validate existance of ticket
     ticket = db.session.get(Ticket, ticket_id)
     if not ticket:
         return jsonify({"error": f"No ticket found with id of {ticket_id}"}), 404
+    
+    if ticket.customer_id != customer_id:
+        return jsonify({"error": "You are trying to alter a resource that you don't own (judged by auth token)"}), 401
+    
+    customer = db.session.get(Customer, customer_id)
+    if not customer:
+        return jsonify({"error": "Could not find customer with supplied customer ID from your auth token"}), 404
+        
     
     data = request.get_json()
     if data is None:
