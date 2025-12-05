@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta, timezone
 from jose import jwt
+from functools import wraps
+from flask import request, jsonify
 import jose
+
 
 SECRET_KEY=""
 
@@ -14,4 +17,30 @@ def encode_token(customer_id): # uses unique pieces of info to make our tokens u
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256") # Create the actual token with appropriate attributes
     
     return token
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        # Look for token in authorization header
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(" ")[1]
+        
+        if not token:
+            return jsonify({"message": "Token is missing!"}), 401
+        
+        try:
+            # Decode the token
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])    
+            customer_id = data['sub'] # Fetch the user_id
+            
+        except jose.exceptions.ExpiredSignatureError:
+            return jsonify({'message': "Token has expired!"}), 401
+        except jose.exceptions.JWTError:
+            return jsonify({'message': "Invalid Token!"}), 401
+        
+        return f(customer_id, *args, **kwargs)
+    
+    return decorated
+        
     

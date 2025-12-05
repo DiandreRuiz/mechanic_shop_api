@@ -1,6 +1,6 @@
 from app.blueprints.customers.schemas import customer_schema, customers_schema
 from app.extensions import db, limiter, cache
-from app.utils.util import encode_token
+from app.utils.util import encode_token, token_required
 from . import customers_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
@@ -33,9 +33,6 @@ def login():
     else:
         return jsonify({"messages": "Invalid email or password"}), 401
     
-    
-
-
 # Rate limit to prevent overloading servers with extra requests
 # Cache results to ease strain on popular query
 @customers_bp.route("/", methods=["GET"])
@@ -105,12 +102,13 @@ def update_customer(customer_id):
     db.session.commit()
     return customer_schema.jsonify(customer), 200
 
-""" @customers_bp.route("/<int:customer_id>", methods=["DELETE"])
-def delete_customer(customer_id):
+@customers_bp.route("/", methods=["DELETE"])
+@token_required
+def delete_customer(customer_id): # Receives customer_id from the token via the wrapper in ../utils/util.py
     customer = db.session.get(Customer, customer_id)
     if not customer:
         return jsonify({"error": f"No customer with customer_id: {customer_id} found"}), 404
     else:
         db.session.delete(customer)
         db.session.commit()
-    return jsonify({"message": f"Customer with customer_id: {customer_id} deleted"}), 200 """
+    return jsonify({"message": f"Customer with customer_id: {customer_id} deleted"}), 200
