@@ -1,11 +1,29 @@
 from app.blueprints.customers.schemas import customer_schema, customers_schema
 from app.extensions import db, limiter, cache
+from app.utils.util import encode_token
 from . import customers_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
 from app.models import Customer
 from sqlalchemy import select
 from typing import Dict
+
+""" 
+@customers_bp.route("/login", methods=["POST"])
+def login():
+    credentials = request.get_json()
+    if not credentials: return jsonify({"error": "Could not locate credentials for auth token encoding"})
+    try:
+        username = credentials["email"]
+        password = credentials["password"]
+    except KeyError:
+        return jsonify({"error": "Invalid payload, expecting 'username' & 'password' keys to be present"}), 400
+    
+    query = select(Customer).where(Customer.email == username)
+    user = db.session.execute(query).scalar_one_or_none() # Return the first scalar result or None """
+    
+    
+
 
 # Rate limit to prevent overloading servers with extra requests
 # Cache results to ease strain on popular query
