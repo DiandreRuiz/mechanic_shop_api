@@ -1,5 +1,5 @@
 from . import tickets_bp
-from app.blueprints.tickets.schemas import ticket_schema, tickets_schema
+from app.blueprints.tickets.schemas import ticket_schema, tickets_schema, update_ticket_mechanics_schema
 from app.extensions import db, limiter, cache
 from app.utils.util import token_required
 from flask import request, jsonify
@@ -89,6 +89,15 @@ def update_ticket(customer_id, ticket_id):
     db.session.commit()
         
     return ticket_schema.jsonify(ticket), 200
+
+@tickets_bp.route("/<int:ticket_id>/update-mechanics")
+def update_ticket_mechanics(ticket_id):
+    try:
+        ticket_updates = update_ticket_mechanics_schema.load(request.get_json())
+        
+    except ValidationError as e:
+        return jsonify(e.messages), 400
+    
 
 @tickets_bp.route("/<int:ticket_id>/assign-mechanic/<int:mechanic_id>", methods=["PUT"])
 def assign_mechanic(ticket_id, mechanic_id):
