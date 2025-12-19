@@ -40,13 +40,18 @@ def login():
 # Rate limit to prevent overloading servers with extra requests
 # Cache results to ease strain on popular query
 @customers_bp.route("/", methods=["GET"])
-@limiter.limit("5 per minute")
-@cache.cached(timeout=60)
 def get_customers():
-    query = select(Customer)
-    members = db.session.execute(query).scalars().all()
+    try:
+        # we cast to int since we receive query parameters as strings
+        page = int(request.args.get("page"))
+        per_page = int(request.args.get("per_page"))
+        query = select(Customer)
+        customers = db.paginate(query, page=page, per_page=per_page) 
+    except:
+        query = select(Customer)
+        customers = db.session.execute(query).scalars().all()
     
-    return customers_schema.jsonify(members), 200
+    return customers_schema.jsonify(customers), 200
 
 # Cache individual customer lookups to reduce database queries for frequently accessed records
 @customers_bp.route("/<int:customer_id>", methods=["GET"])
