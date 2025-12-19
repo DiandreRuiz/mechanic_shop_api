@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
-from sqlalchemy import Table, Column, ForeignKey, String, Date, Float
+from sqlalchemy import Table, Column, ForeignKey, String, Date, Float, Integer
 from typing import List
 from datetime import date
 
@@ -14,12 +14,23 @@ ticket_mechanic_joint_table = Table(
     Column("mechanic_id", ForeignKey("mechanics.id"), primary_key=True)
 )
 
-ticket_inventory_joint_table = Table(
+""" ticket_inventory_joint_table = Table(
     "ticket_inventory",
     Base.metadata,
     Column("ticket_id", ForeignKey("tickets.id"), primary_key=True),
     Column("inventory_id", ForeignKey("inventory.id"), primary_key=True)
-)
+) """
+
+class TicketInventory(Base):
+    __tablename__ = "ticket_inventory"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ticket_id: Mapped[int] = mapped_column(ForeignKey("tickets.id"), nullable=False)
+    inventory_id: Mapped[int] = mapped_column(ForeignKey("inventory.id"), nullable=False)
+    quantity = Column(Integer, nullable=False, default=1)
+    
+    ticket: Mapped["Ticket"] = relationship(back_populates="ticket_inventory_items")
+    inventory_item: Mapped["Inventory"] = relationship(back_populates="ticket_inventory_items")
 
 class Customer(Base):
     __tablename__ = "customers"
@@ -43,6 +54,21 @@ class Ticket(Base):
     
     customer: Mapped["Customer"] = relationship(back_populates="tickets")
     mechanics: Mapped[List["Mechanic"]] = relationship(secondary=ticket_mechanic_joint_table, back_populates="tickets")
+    ticket_inventory_items: Mapped[List["TicketInventory"]] = relationship(
+        back_populates="ticket",
+        cascade="all, delete-orphan"
+    )
+       
+class Inventory(Base):
+    __tablename__ = "inventory"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(360), nullable=False, unique=True)
+    price: Mapped[float] = mapped_column(Float, nullable=False)
+    
+    ticket_inventory_items: Mapped[List["TicketInventory"]] = relationship(
+        back_populates="inventory_item",
+        cascade="all, delete-orphan"
+    )
     
 class Mechanic(Base):
     __tablename__ = "mechanics"
@@ -55,8 +81,3 @@ class Mechanic(Base):
     
     tickets: Mapped[List["Ticket"]] = relationship(secondary=ticket_mechanic_joint_table, back_populates="mechanics")
     
-class Inventory(Base):
-    __tablename__ = "inventory"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(360), nullable=False, unique=True)
-    price: Mapped[float] = mapped_column(Float, nullable=False)

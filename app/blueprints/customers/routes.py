@@ -1,11 +1,11 @@
 from app.blueprints.customers.schemas import customer_schema, customers_schema, login_schema
 
 from app.extensions import db, limiter, cache
-from app.utils.util import encode_token, token_required
+from app.utils.util import encode_token
 from . import customers_bp
 from flask import request, jsonify
 from marshmallow import ValidationError
-from app.models import Customer, Ticket
+from app.models import Customer
 from sqlalchemy import select
 from typing import Dict
 
