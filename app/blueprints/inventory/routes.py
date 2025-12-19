@@ -5,6 +5,7 @@ from app.models import Inventory
 from flask import request, jsonify
 from app.extensions import db
 from marshmallow import ValidationError
+from typing import Dict
 
 @inventory_bp.route("/", methods=["GET"])
 def get_inventory_items():
@@ -46,6 +47,33 @@ def add_inventory_item():
     db.session.commit()
     
     return inventory_item_schema.jsonify(new_inventory_item), 201
+
+@inventory_bp.route("/<int:inventory_id>", methods=["PUT"])
+def update_inventory_item(inventory_id):
+    """Allows partial schema for request body"""
     
+    inventory_item = db.session.get(Inventory, inventory_id)
+    if not inventory_item:
+        return jsonify({"error": f"Could not find inventory item with id: {inventory_id}"}), 404
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing request body"}), 400
+    
+    try:
+        inventory_data: Dict = inventory_item_schema.load(data, partial=True)
+    except ValidationError as e:
+        return jsonify(e.messages), 400
+
+    for k,v in inventory_data.items():
+        setattr(inventory_item, k, v)
+        
+    db.session.commit()
+    return inventory_item_schema.jsonify(inventory_item), 200
+    
+        
+    
+    
+
     
     
