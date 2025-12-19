@@ -39,6 +39,7 @@ def login():
   
 # Rate limit to prevent overloading servers with extra requests
 # Cache results to ease strain on popular query
+@limiter.limit("15 per hour")
 @customers_bp.route("/", methods=["GET"])
 def get_customers():
     try:
