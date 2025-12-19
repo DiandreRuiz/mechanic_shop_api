@@ -14,6 +14,13 @@ ticket_mechanic_joint_table = Table(
     Column("mechanic_id", ForeignKey("mechanics.id"), primary_key=True)
 )
 
+ticket_inventory_joint_table = Table(
+    "ticket_inventory",
+    Base.metadata,
+    Column("ticket_id", ForeignKey("tickets.id"), primary_key=True),
+    Column("inventory_id", ForeignKey("inventory.id"), primary_key=True)
+)
+
 class Customer(Base):
     __tablename__ = "customers"
     
@@ -24,7 +31,6 @@ class Customer(Base):
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     
     tickets: Mapped[List["Ticket"]] = relationship(back_populates="customer")
-    
     
 class Ticket(Base):
     __tablename__ = "tickets"
@@ -48,3 +54,9 @@ class Mechanic(Base):
     salary: Mapped[float] = mapped_column(Float, nullable=False)
     
     tickets: Mapped[List["Ticket"]] = relationship(secondary=ticket_mechanic_joint_table, back_populates="mechanics")
+    
+class Inventory(Base):
+    __tablename__ = "inventory"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(360), nullable=False, unique=True)
+    price: Mapped[float] = mapped_column(Float, nullable=False)
