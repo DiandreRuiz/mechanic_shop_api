@@ -18,6 +18,9 @@ def encode_token(customer_id): # uses unique pieces of info to make our tokens u
     
     return token
 
+# Checks the request 'Authorization' header for a JWT. Parses this token
+# for token string & decodes token string to deduce customer id. If
+# token string cannot be decoded, we throw an error for an invalid token.
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -25,7 +28,7 @@ def token_required(f):
         # Look for token in authorization header
         if 'Authorization' in request.headers:
             token = request.headers['Authorization'].split(" ")[1]
-            print(token)
+            # print(token)
         
         if not token:
             return jsonify({"message": "Token is missing!"}), 401
