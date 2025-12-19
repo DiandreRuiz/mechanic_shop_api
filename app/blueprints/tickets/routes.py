@@ -1,5 +1,10 @@
 from . import tickets_bp
-from app.blueprints.tickets.schemas import ticket_schema, tickets_schema, update_ticket_mechanics_schema
+from app.blueprints.tickets.schemas import (
+    ticket_schema,
+    tickets_schema,
+    update_ticket_mechanics_schema,
+    update_ticket_mechanics_response_schema
+)
 from app.extensions import db, limiter, cache
 from app.utils.util import token_required
 from flask import request, jsonify
@@ -90,14 +95,29 @@ def update_ticket(customer_id, ticket_id):
         
     return ticket_schema.jsonify(ticket), 200
 
-@tickets_bp.route("/<int:ticket_id>/update-mechanics")
+@tickets_bp.route("/<int:ticket_id>/update-mechanics", methods=["PUT"])
 def update_ticket_mechanics(ticket_id):
     try:
         ticket_updates = update_ticket_mechanics_schema.load(request.get_json())
-        
     except ValidationError as e:
         return jsonify(e.messages), 400
     
+    # select ticket we want to update
+    query = select(Ticket).where(Ticket.id == ticket_id)
+    ticket = db.session.execute(query).scalars().first()
+    
+    for mechanic_id in ticket_updates.get("add_mechanic_ids", []):
+        mechanic = db.session.get(Mechanic, mechanic_id)
+        if mechanic and mechanic not in ticket.mechanics:
+            ticket.mechanics.append(mechanic)
+    
+    for mechanic_id in ticket_updates.get("remove_mechanic_ids", []):
+        mechanic = db.session.get(Mechanic, mechanic_id)
+        if mechanic and mechanic in ticket.mechanics:
+            ticket.mechanics.remove(mechanic)
+    
+    db.session.commit()
+    return update_ticket_mechanics_response_schema.jsonify(ticket), 200
 
 @tickets_bp.route("/<int:ticket_id>/assign-mechanic/<int:mechanic_id>", methods=["PUT"])
 def assign_mechanic(ticket_id, mechanic_id):

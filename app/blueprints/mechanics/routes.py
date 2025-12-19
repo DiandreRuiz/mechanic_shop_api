@@ -1,4 +1,4 @@
-from app.blueprints.mechanics.schemas import mechanic_schema, mechanics_schema
+from app.blueprints.mechanics.schemas import mechanic_schema, mechanics_schema, mechanics_with_ticket_count_schema
 from app.extensions import db, limiter, cache
 from . import mechanics_bp
 from flask import request, jsonify
@@ -27,6 +27,15 @@ def get_mechanic(mechanic_id):
         return jsonify({"error": f"No mechanic found with id: {mechanic_id}"}), 404
     else:
         return mechanic_schema.jsonify(mechanic), 200
+    
+@mechanics_bp.route("/top-3-mechanics", methods=["GET"])
+def get_top_3_mechanics():
+    query = select(Mechanic)
+    mechanics = db.session.execute(query).scalars().all()
+    mechanics = sorted(mechanics, key=lambda m: len(m.tickets))
+    
+    return mechanics_with_ticket_count_schema.jsonify(mechanics), 200
+
     
 @mechanics_bp.route("/", methods=["POST"])
 def create_mechanic():
