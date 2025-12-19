@@ -70,6 +70,15 @@ def update_inventory_item(inventory_id):
         
     db.session.commit()
     return inventory_item_schema.jsonify(inventory_item), 200
+
+@inventory_bp.route("/<int:inventory_id>", methods=["DELETE"])
+def delete_inventory_item(inventory_id):
+    inventory_item = db.session.get(Inventory, inventory_id)
+    if not inventory_item:
+        return jsonify({"error": f"Could not find inventory item with id: {inventory_id}"}), 404
+    db.session.delete(inventory_item)
+    db.session.commit()
+    return "", 204
     
         
     
