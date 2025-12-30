@@ -4,7 +4,7 @@ from app.blueprints.tickets.schemas import (
     tickets_schema,
     update_ticket_mechanics_schema,
     update_ticket_mechanics_response_schema,
-    update_ticket_inventory_items_schema
+    add_ticket_inventory_items_schema
 )
 from app.extensions import db, limiter, cache
 from app.utils.util import token_required
@@ -174,15 +174,14 @@ def remove_mechanic(ticket_id, mechanic_id):
 @tickets_bp.route("/<int:ticket_id>/inventory", methods=["Post"])
 def add_inventory(ticket_id, inventory_id):
     """
-    1. Get ticket -> check if exists
-    2. Get inventory item -> check if exists
-    3. Check if this inventory item is already associated with this ticket
-    4. Add Inventory Obj to ticket.inventory list
-    4. Commit changes
+    1. Parse add_inventory_items 
+    2. Parse remove_inventory_items
+    3. Create Inventory ORM objects for all inventory items
+    4. 
     """
     
     try:
-        inventory_updates = update_ticket_inventory_items_schema.load(request.get_json())    
+        inventory_updates = add_ticket_inventory_items_schema.load(request.get_json())    
     except ValidationError as e:
         return jsonify(e.messages)
     
