@@ -3,13 +3,14 @@ from app.blueprints.tickets.schemas import (
     ticket_schema,
     tickets_schema,
     update_ticket_mechanics_schema,
-    update_ticket_mechanics_response_schema
+    update_ticket_mechanics_response_schema,
+    update_ticket_inventory_items_schema
 )
 from app.extensions import db, limiter, cache
 from app.utils.util import token_required
 from flask import request, jsonify
 from marshmallow import ValidationError
-from app.models import Ticket, Mechanic, Customer
+from app.models import Ticket, Mechanic, Customer, Inventory, TicketInventory
 from sqlalchemy import select
 from typing import Dict
 
@@ -169,7 +170,51 @@ def remove_mechanic(ticket_id, mechanic_id):
         "ticket_id": ticket_id,
         "mechanic_id": mechanic_id
     }), 200
-        
+    
+@tickets_bp.route("/<int:ticket_id>/inventory", methods=["Post"])
+def add_inventory(ticket_id, inventory_id):
+    """
+    1. Get ticket -> check if exists
+    2. Get inventory item -> check if exists
+    3. Check if this inventory item is already associated with this ticket
+    4. Add Inventory Obj to ticket.inventory list
+    4. Commit changes
+    """
+    
+    try:
+        inventory_updates = update_ticket_inventory_items_schema.load(request.get_json())    
+    except ValidationError as e:
+        return jsonify(e.messages)
+    
+    add_inventory_items = inventory_updates.get("add_inventory_items")
+    remove_inventory_items = inventory_updates.get("remove_inventory_items")
+    
+    ticket = db.session.get(Ticket, ticket_id)
+    inventory_item = db.session.get(Inventory, inventory_id)
+    
+    # Check for existance of ticket & inventory_item
+    if not ticket:
+        return jsonify({"error": f"Could not find ticket with ticket_id: {ticket_id}"})
+    if not inventory_item:
+        return jsonify({"error": f"Could not find inventory item with id: {inventory_id}"})
+    
+    # Check for existing
+    assoc_query = select(TicketInventory).where(
+        TicketInventory.ticket_id == ticket_id,
+        TicketInventory.inventory_id == inventory_id
+    )
+    tic_inven_assoc = db.session.scalar(assoc_query)
+    if tic_inven_assoc is not None:
+        return jsonify({"error": f"Inventory item with id: {inventory_id} already associated with ticket with id: {ticket_id}"})
+    
+    ticket.
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Inventory item successfully added to ticket",
+        "ticket_id": ticket_id,
+        "inventory_id": inventory_id
+    }), 200
 
 
 # NOTE: This code opens an endpoint capable of deleting a ticket, not sure we want to do that

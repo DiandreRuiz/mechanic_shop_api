@@ -22,10 +22,6 @@ def get_inventory_items():
 
 @inventory_bp.route("/", methods=["POST"])
 def add_inventory_item():
-    """ from sqlalchemy import inspect
-    mapper = inspect(Inventory)
-    print(mapper.attrs.keys())
-    exit() """
     
     data = request.get_json()
     if not data:

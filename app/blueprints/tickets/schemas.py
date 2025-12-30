@@ -24,8 +24,15 @@ class UpdateTicketMechanicsSchema(ma.Schema):
     remove_mechanic_ids = fields.List(fields.Int(), required=True)
     class Meta:
         fields = ("add_mechanic_ids", "remove_mechanic_ids") # White list: "Of the fields we have, which do we want to use?"
+
+class UpdateTicketInventoryItems(ma.Schema):
+    add_inventory_ids = fields.List(fields.Int(), required=True)
+    removie_inventory_ids = fields.List(fields.Int(), required=True)
+    class Meta:
+        fields = ("add_inventory_ids", "remove_inventory_ids")
         
 ticket_schema = TicketSchema()
 tickets_schema = TicketSchema(many=True)
 update_ticket_mechanics_schema = UpdateTicketMechanicsSchema()
 update_ticket_mechanics_response_schema = UpdateTicketMechanicsResponseSchema()
+update_ticket_inventory_items_schema = UpdateTicketInventoryItems()
