@@ -12,6 +12,7 @@ from flask import request, jsonify
 from marshmallow import ValidationError
 from app.models import Ticket, Mechanic, Customer, Inventory, TicketInventory
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from typing import Dict
 
 # Rate limit to prevent overloading servers with extra requests
@@ -171,33 +172,33 @@ def remove_mechanic(ticket_id, mechanic_id):
         "mechanic_id": mechanic_id
     }), 200
     
-@tickets_bp.route("/<int:ticket_id>/inventory", methods=["Post"])
+@tickets_bp.route("/<int:ticket_id>/inventory", methods=["POST"])
 def add_inventory(ticket_id):
-    """
-    1. Validate request payload
-    2. Validate Ticket exists
-    3. Validate all inventory items exist
-    4. Find duplicates already associated with ticket for response message
-    5. Create rows with ids that weren't already associated to this ticket
-    6. Commit changes
-    7. Collect added_ids & duplicate_ids for response message
-    """
     
+    # Validate payload schema
     try:
         inventory_updates = add_ticket_inventory_items_schema.load(request.get_json())    
     except ValidationError as e:
-        return jsonify(e.messages)
+        return jsonify(e.messages), 400
+    
+    # Validate at least 1 inventory item
+    add_inventory_items = inventory_updates.get("add_inventory_items")
+    if not add_inventory_items:
+        return jsonify({"error": "add_inventory_items key must be a non-empty list"}), 400
     
     # Validate Ticket exists
     ticket = db.session.get(Ticket, ticket_id)
     if not ticket:
         return jsonify({"error": f"Could not find ticket with ticket_id: {ticket_id}"}), 404
 
+    payload_ids = [i["inventory_id"] for i in add_inventory_items]
+    if len(payload_ids) != len(set(payload_ids)):
+        return jsonify({"error", "Payload contains at least 1 duplicate inventory ID"}), 400
+    
     # Validate Inventory items exist
-    add_inventory_items = inventory_updates.get("add_inventory_items")
     inventory_ids = set([i["inventory_id"] for i in add_inventory_items])
     inventory_check_query = select(Inventory.id).where(Inventory.id.in_(inventory_ids))
-    found_ids = db.session.scalars(inventory_check_query).all()
+    found_ids = set(db.session.scalars(inventory_check_query).all())
     missing = sorted(inventory_ids - found_ids)
     if missing:
         return jsonify({
@@ -220,7 +221,13 @@ def add_inventory(ticket_id):
                 inventory_id=item["inventory_id"],
                 quantity=item["quantity"]
         ))
-    db.session.commit()
+    
+    # Protect against race conditions
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "One or more inventory items were already associated with this ticket"}) 
     
     # Collect duplicate rows that weren't inserted
     added_ids = sorted(i["inventory_id"] for i in inv_to_add)
