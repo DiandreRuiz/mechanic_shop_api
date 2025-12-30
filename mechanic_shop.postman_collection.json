@@ -86,12 +86,21 @@
 			"response": []
 		},
 		{
-			"name": "GET All Tickets",
+			"name": "PUT Update Customer by ID",
 			"request": {
-				"method": "GET",
+				"method": "PUT",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Billy Bob Changed\",\n    \"email\": \"Examplebillybob@gmail.com\",\n    \"phone\": \"1234566633\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "http://127.0.0.1:5001/tickets/",
+					"raw": "http://127.0.0.1:5001/customers/5",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -101,8 +110,8 @@
 					],
 					"port": "5001",
 					"path": [
-						"tickets",
-						""
+						"customers",
+						"5"
 					]
 				}
 			},
@@ -132,12 +141,20 @@
 			"response": []
 		},
 		{
-			"name": "GET Ticket by ID",
+			"name": "GET Top 3 Mechanics by Ticket Count",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "GET Mechanic by ID",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:5001/tickets/1",
+					"raw": "http://127.0.0.1:5001/mechanics/2",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -147,8 +164,8 @@
 					],
 					"port": "5001",
 					"path": [
-						"tickets",
-						"1"
+						"mechanics",
+						"2"
 					]
 				}
 			},
@@ -242,6 +259,60 @@
 			"response": []
 		},
 		{
+			"name": "GET All Tickets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5001/tickets/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"tickets",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Ticket by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5001/tickets/1",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"tickets",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET My Tickets (Auth Token)",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
 			"name": "POST Create Ticket",
 			"request": {
 				"method": "POST",
@@ -270,6 +341,14 @@
 						""
 					]
 				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST Add Inventory to Ticket by ID",
+			"request": {
+				"method": "POST",
+				"header": []
 			},
 			"response": []
 		},
@@ -317,6 +396,206 @@
 						"tickets",
 						"1",
 						"remove-mechanic",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST Login",
+			"request": {
+				"auth": {
+					"type": "bearer"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"new_peter_email@example.com\",\n    \"password\": \"mypassword\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5001/customers/login",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"customers",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET All Current User Tickets",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjQ5NzM0MDEsImlhdCI6MTc2NDk2OTgwMSwic3ViIjoiMyJ9.DVO6LIgmLJ5v89K8ONaeYB6mBZAgfeXwUJxaPRwsijM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Billy Bob\",\n    \"email\": \"Examplebillybob@gmail.com\",\n    \"phone\": \"1234566633\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5001/tickets/my-tickets",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"tickets",
+						"my-tickets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT Update Mechanics on a Ticket",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"VIN\": \"12323132132132132132132132132\",\n    \"service_date\": \"2025-01-14\",\n    \"service_description\": \"Headlight replacement\",\n    \"customer_id\": \"4\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5001/tickets/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"tickets",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET All Inventory",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "POST Create Inventory Item",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"front-bumper\",\n    \"price\": 255.95\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5001/inventory",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"inventory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT Update Inventory Item by ID",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"price\": 310.95\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5001/inventory/1",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"inventory",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE Inventory Item by ID",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"front-bumper\",\n    \"price\": 255.95\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5001/inventory/3",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"inventory",
 						"3"
 					]
 				}
