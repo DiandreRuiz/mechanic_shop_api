@@ -1,5 +1,3 @@
-print("starting imports")
-
 from app import create_app
 from app.extensions import db
 

@@ -18,7 +18,7 @@ class TicketInventory(Base):
     __tablename__ = "ticket_inventory"
     
     __table_args__ = (
-        UniqueConstraint("ticket_id", "inventory_id", name="uq_ticket_inventory_ticket_inventory")
+        UniqueConstraint("ticket_id", "inventory_id", name="uq_ticket_inventory_ticket_inventory"),
     )
     
     id: Mapped[int] = mapped_column(primary_key=True)

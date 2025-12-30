@@ -33,7 +33,7 @@ class AddTicketInventoryItemsSchema(ma.Schema):
     add_inventory_items = fields.List(fields.Nested(TicketInventoryItemInputSchema), required=True)
     
     class Meta:
-        fields = ("add_inventory_items")
+        fields = ("add_inventory_items",)
         
 ticket_schema = TicketSchema()
 tickets_schema = TicketSchema(many=True)
