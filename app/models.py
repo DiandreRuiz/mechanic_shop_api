@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
-from sqlalchemy import Table, Column, ForeignKey, String, Date, Float, Integer
+from sqlalchemy import Table, Column, ForeignKey, String, Date, Float, Integer, UniqueConstraint
 from typing import List
 from datetime import date
 
@@ -14,15 +14,12 @@ ticket_mechanic_joint_table = Table(
     Column("mechanic_id", ForeignKey("mechanics.id"), primary_key=True)
 )
 
-""" ticket_inventory_joint_table = Table(
-    "ticket_inventory",
-    Base.metadata,
-    Column("ticket_id", ForeignKey("tickets.id"), primary_key=True),
-    Column("inventory_id", ForeignKey("inventory.id"), primary_key=True)
-) """
-
 class TicketInventory(Base):
     __tablename__ = "ticket_inventory"
+    
+    __table_args__ = (
+        UniqueConstraint("ticket_id", "inventory_id", name="uq_ticket_inventory_ticket_inventory")
+    )
     
     id: Mapped[int] = mapped_column(primary_key=True)
     ticket_id: Mapped[int] = mapped_column(ForeignKey("tickets.id"), nullable=False)
