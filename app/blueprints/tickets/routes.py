@@ -172,12 +172,15 @@ def remove_mechanic(ticket_id, mechanic_id):
     }), 200
     
 @tickets_bp.route("/<int:ticket_id>/inventory", methods=["Post"])
-def add_inventory(ticket_id, inventory_id):
+def add_inventory(ticket_id):
     """
-    1. Parse add_inventory_items 
-    2. Parse remove_inventory_items
-    3. Create Inventory ORM objects for all inventory items
-    4. 
+    1. Validate request payload
+    2. Validate Ticket exists
+    3. Validate all inventory items exist
+    4. Find duplicates already associated with ticket for response message
+    5. Create rows with ids that weren't already associated to this ticket
+    6. Commit changes
+    7. Collect added_ids & duplicate_ids for response message
     """
     
     try:
@@ -185,34 +188,51 @@ def add_inventory(ticket_id, inventory_id):
     except ValidationError as e:
         return jsonify(e.messages)
     
-    add_inventory_items = inventory_updates.get("add_inventory_items")
-    remove_inventory_items = inventory_updates.get("remove_inventory_items")
-    
+    # Validate Ticket exists
     ticket = db.session.get(Ticket, ticket_id)
-    inventory_item = db.session.get(Inventory, inventory_id)
-    
-    # Check for existance of ticket & inventory_item
     if not ticket:
-        return jsonify({"error": f"Could not find ticket with ticket_id: {ticket_id}"})
-    if not inventory_item:
-        return jsonify({"error": f"Could not find inventory item with id: {inventory_id}"})
+        return jsonify({"error": f"Could not find ticket with ticket_id: {ticket_id}"}), 404
+
+    # Validate Inventory items exist
+    add_inventory_items = inventory_updates.get("add_inventory_items")
+    inventory_ids = set([i["inventory_id"] for i in add_inventory_items])
+    inventory_check_query = select(Inventory.id).where(Inventory.id.in_(inventory_ids))
+    found_ids = db.session.scalars(inventory_check_query).all()
+    missing = sorted(inventory_ids - found_ids)
+    if missing:
+        return jsonify({
+            "error": "Some inventory items did not exist",
+            "missing_ids": missing
+        }), 404
     
-    # Check for existing
-    assoc_query = select(TicketInventory).where(
+    # Find Inventory items already associated with Ticket
+    dup_inventory_query = select(TicketInventory.inventory_id).where(
         TicketInventory.ticket_id == ticket_id,
-        TicketInventory.inventory_id == inventory_id
+        TicketInventory.inventory_id.in_(inventory_ids)
     )
-    tic_inven_assoc = db.session.scalar(assoc_query)
-    if tic_inven_assoc is not None:
-        return jsonify({"error": f"Inventory item with id: {inventory_id} already associated with ticket with id: {ticket_id}"})
+    dup_inventory = set(db.session.scalars(dup_inventory_query).all())
+    inv_to_add = [i for i in add_inventory_items if i["inventory_id"] not in dup_inventory]
     
-    ticket.
+    # Create Rows
+    for item in inv_to_add:
+        db.session.add(TicketInventory(
+                ticket_id=ticket_id,
+                inventory_id=item["inventory_id"],
+                quantity=item["quantity"]
+        ))
     db.session.commit()
     
+    # Collect duplicate rows that weren't inserted
+    added_ids = sorted(i["inventory_id"] for i in inv_to_add)
+    duplicate_ids = sorted(dup_inventory)
+    
     return jsonify({
-        "message": "Inventory item successfully added to ticket",
         "ticket_id": ticket_id,
-        "inventory_id": inventory_id
+        "added_inventory_ids": added_ids,
+        "duplicate_inventory_ids": duplicate_ids,
+        "requested_count": len(add_inventory_items),
+        "added_count": len(added_ids),
+        "duplicate_count": len(duplicate_ids)
     }), 200
 
 
