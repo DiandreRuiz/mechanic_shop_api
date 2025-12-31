@@ -4,6 +4,10 @@ from app.blueprints.customers import customers_bp
 from app.blueprints.mechanics import mechanics_bp
 from app.blueprints.tickets import tickets_bp
 from app.blueprints.inventory import inventory_bp
+from flask_swagger_ui import get_swaggerui_blueprint
+
+SWAGGER_URL = "api/docs" # URL for exposing swagger UI
+API_URL = "/static/swagger.yaml" # 
 
 def create_app(config_name: str):
     app = Flask(__name__)
