@@ -7,7 +7,7 @@ from app.blueprints.inventory import inventory_bp
 from flask_swagger_ui import get_swaggerui_blueprint
 
 SWAGGER_URL = "/api/docs" # URL for exposing swagger UI
-API_URL = "/static/swagger.yaml" # Our API URL
+API_URL = "/static/swagger.yml" # Our API URL
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
