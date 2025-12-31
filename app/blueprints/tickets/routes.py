@@ -197,8 +197,10 @@ def add_inventory(ticket_id):
     
     # Validate Inventory items exist
     inventory_ids = set([i["inventory_id"] for i in add_inventory_items])
+    
     inventory_check_query = select(Inventory.id).where(Inventory.id.in_(inventory_ids))
     found_ids = set(db.session.scalars(inventory_check_query).all())
+    
     missing = sorted(inventory_ids - found_ids)
     if missing:
         return jsonify({
@@ -211,6 +213,7 @@ def add_inventory(ticket_id):
         TicketInventory.ticket_id == ticket_id,
         TicketInventory.inventory_id.in_(inventory_ids)
     )
+    
     dup_inventory = set(db.session.scalars(dup_inventory_query).all())
     inv_to_add = [i for i in add_inventory_items if i["inventory_id"] not in dup_inventory]
     
