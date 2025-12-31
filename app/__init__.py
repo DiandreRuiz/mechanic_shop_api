@@ -7,7 +7,14 @@ from app.blueprints.inventory import inventory_bp
 from flask_swagger_ui import get_swaggerui_blueprint
 
 SWAGGER_URL = "api/docs" # URL for exposing swagger UI
-API_URL = "/static/swagger.yaml" # 
+API_URL = "/static/swagger.yaml" # Our API URL
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "Mechanic Shop API"
+    }
+)
 
 def create_app(config_name: str):
     app = Flask(__name__)
@@ -26,5 +33,6 @@ def create_app(config_name: str):
     app.register_blueprint(mechanics_bp, url_prefix="/mechanics")
     app.register_blueprint(tickets_bp, url_prefix="/tickets")
     app.register_blueprint(inventory_bp, url_prefix="/inventory")
+    app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     
     return app
