@@ -5,14 +5,19 @@ import unittest
 class TestCustomer(unittest.TestCase):
     def setUp(self):
         self.app = create_app("TestingConfig")
+        
+        # create app context to use during this test
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.drop_all()
+        db.create_all()
+        
         self.client = self.app.test_client()
-        with self.app.app_context():
-            db.drop_all()
-            db.create_all()
-    
+            
     def tearDown(self):
-        with self.app.app_context():
-            db.session.remove()
+        # clean up resources including db session (db connection) & pop app context
+        db.session.remove()
+        self.ctx.pop()        
             
     def test_customer(self):
         customer_payload = {
