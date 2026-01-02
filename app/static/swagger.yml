@@ -1,56 +1,414 @@
-#app/state/swagger.yml
+swagger: "2.0"
 
-swagger: '2.0'
 info:
-  title: "Mechanic Shop API"
-  description: "This is an API for a mechanic shop, showcasing REST / CRUD principles"
-  version: "1.0.0"
+    title: "Mechanic Shop API"
+    description: "This is an API for a mechanic shop, showcasing REST / CRUD principles"
+    version: "1.0.0"
+
 host: "127.0.0.1:5001"
+
 schemes:
-  - "http"
+    - "http"
+
 consumes:
-  - "application/json"
+    - "application/json"
 produces:
-  - "application/json"
+    - "application/json"
+
+securityDefinitions:
+    bearerAuth:
+        type: apiKey
+        name: Authorization
+        in: header
+
 paths:
-  /members/login:
-    post:
-      tags:
-        - members
-      summary: "Login endpoint, (generates token)"
-      description: "Validates member credentials, generates and returns a member specific token"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Login Credentials"
-          required: true
-          schema:
-            $ref: "#/definitions/LoginCredentials"
-      responses:
-        200:
-          description: "Login successful"
-          schema:
-            $ref: '#definitions/LoginResponse'
+    /customers/:
+        get:
+            tags: [customers]
+            summary: "Get all customers"
+            responses:
+                200:
+                    description: "List of customers"
+
+        post:
+            tags: [customers]
+            summary: "Create customer"
+            parameters:
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/CustomerCreate"
+            responses:
+                201:
+                    description: "Customer created"
+
+    /customers/{customer_id}:
+        get:
+            tags: [customers]
+            summary: "Get customer by ID"
+            parameters:
+                - in: path
+                  name: customer_id
+                  required: true
+                  type: integer
+            responses:
+                200:
+                    description: "Customer details"
+
+        put:
+            tags: [customers]
+            summary: "Update customer by ID"
+            parameters:
+                - in: path
+                  name: customer_id
+                  required: true
+                  type: integer
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/CustomerCreate"
+            responses:
+                200:
+                    description: "Customer updated"
+
+    /customers/login:
+        post:
+            tags: [customers]
+            summary: "Login customer"
+            parameters:
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/LoginCredentials"
+            responses:
+                200:
+                    description: "Login successful"
+                    schema:
+                        $ref: "#/definitions/LoginResponse"
+
+    /mechanics/:
+        get:
+            tags: [mechanics]
+            summary: "Get all mechanics"
+            responses:
+                200:
+                    description: "List of mechanics"
+
+        post:
+            tags: [mechanics]
+            summary: "Create mechanic"
+            parameters:
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/MechanicCreate"
+            responses:
+                201:
+                    description: "Mechanic created"
+
+    /mechanics/{mechanic_id}:
+        get:
+            tags: [mechanics]
+            summary: "Get mechanic by ID"
+            parameters:
+                - in: path
+                  name: mechanic_id
+                  required: true
+                  type: integer
+            responses:
+                200:
+                    description: "Mechanic details"
+
+        put:
+            tags: [mechanics]
+            summary: "Update mechanic by ID"
+            parameters:
+                - in: path
+                  name: mechanic_id
+                  required: true
+                  type: integer
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/MechanicCreate"
+            responses:
+                200:
+                    description: "Mechanic updated"
+
+        delete:
+            tags: [mechanics]
+            summary: "Delete mechanic by ID"
+            parameters:
+                - in: path
+                  name: mechanic_id
+                  required: true
+                  type: integer
+            responses:
+                204:
+                    description: "Mechanic deleted"
+
+    /mechanics/top-3-mechanics:
+        get:
+            tags: [mechanics]
+            summary: "Get top 3 mechanics by ticket count"
+            responses:
+                200:
+                    description: "Top 3 mechanics"
+
+    /tickets/:
+        get:
+            tags: [tickets]
+            summary: "Get all tickets"
+            responses:
+                200:
+                    description: "List of tickets"
+
+        post:
+            tags: [tickets]
+            summary: "Create ticket"
+            parameters:
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/TicketCreate"
+            responses:
+                201:
+                    description: "Ticket created"
+
+        put:
+            tags: [tickets]
+            summary: "Update mechanics on a ticket"
+            parameters:
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/TicketCreate"
+            responses:
+                200:
+                    description: "Ticket updated"
+
+    /tickets/{ticket_id}:
+        get:
+            tags: [tickets]
+            summary: "Get ticket by ID"
+            parameters:
+                - in: path
+                  name: ticket_id
+                  required: true
+                  type: integer
+            responses:
+                200:
+                    description: "Ticket details"
+
+    /tickets/my-tickets:
+        get:
+            tags: [tickets]
+            summary: "Get tickets for current user"
+            security:
+                - bearerAuth: []
+            responses:
+                200:
+                    description: "User tickets"
+
+    /tickets/{ticket_id}/assign-mechanic/{mechanic_id}:
+        put:
+            tags: [tickets]
+            summary: "Assign mechanic to ticket"
+            parameters:
+                - in: path
+                  name: ticket_id
+                  required: true
+                  type: integer
+                - in: path
+                  name: mechanic_id
+                  required: true
+                  type: integer
+            responses:
+                200:
+                    description: "Mechanic assigned"
+
+    /tickets/{ticket_id}/remove-mechanic/{mechanic_id}:
+        put:
+            tags: [tickets]
+            summary: "Remove mechanic from ticket"
+            parameters:
+                - in: path
+                  name: ticket_id
+                  required: true
+                  type: integer
+                - in: path
+                  name: mechanic_id
+                  required: true
+                  type: integer
+            responses:
+                200:
+                    description: "Mechanic removed"
+
+    /tickets/{ticket_id}/inventory:
+        post:
+            tags: [tickets]
+            summary: "Add inventory items to ticket"
+            parameters:
+                - in: path
+                  name: ticket_id
+                  required: true
+                  type: integer
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/AddTicketInventoryItemsRequest"
+            responses:
+                200:
+                    description: "Inventory items added with duplicates reported"
+
+    /inventory:
+        get:
+            tags: [inventory]
+            summary: "Get all inventory"
+            responses:
+                200:
+                    description: "Inventory list"
+
+        post:
+            tags: [inventory]
+            summary: "Create inventory item"
+            parameters:
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/InventoryCreate"
+            responses:
+                201:
+                    description: "Inventory item created"
+
+    /inventory/{inventory_id}:
+        put:
+            tags: [inventory]
+            summary: "Update inventory item"
+            parameters:
+                - in: path
+                  name: inventory_id
+                  required: true
+                  type: integer
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/InventoryUpdate"
+            responses:
+                200:
+                    description: "Inventory updated"
+
+        delete:
+            tags: [inventory]
+            summary: "Delete inventory item"
+            parameters:
+                - in: path
+                  name: inventory_id
+                  required: true
+                  type: integer
+            responses:
+                204:
+                    description: "Inventory deleted"
 
 definitions:
+    LoginCredentials:
+        type: object
+        required: [email, password]
+        properties:
+            email:
+                type: string
+            password:
+                type: string
 
-  LoginCredentials:
-    type: "object"
-    properties:
-      email:
-        type: "string"
-      password:
-        type: "string"
-    required:
-      - email
-      - password
-  
-  LoginResponse:
-    type: "object"
-    properties:
-      token:
-        type: "string"
-      message:
-        type: "string"
-      status:
-        type: "string"
+    LoginResponse:
+        type: object
+        properties:
+            token:
+                type: string
+            message:
+                type: string
+            status:
+                type: string
+
+    CustomerCreate:
+        type: object
+        required: [name, email, phone]
+        properties:
+            name:
+                type: string
+            email:
+                type: string
+            phone:
+                type: string
+
+    MechanicCreate:
+        type: object
+        required: [name, email, phone, salary]
+        properties:
+            name:
+                type: string
+            email:
+                type: string
+            phone:
+                type: string
+            salary:
+                type: number
+                format: float
+
+    TicketCreate:
+        type: object
+        required: [VIN, service_date, service_description, customer_id]
+        properties:
+            VIN:
+                type: string
+            service_date:
+                type: string
+            service_description:
+                type: string
+            customer_id:
+                type: integer
+
+    AddTicketInventoryItemsRequest:
+        type: object
+        required: [add_inventory_items]
+        properties:
+            add_inventory_items:
+                type: array
+                items:
+                    $ref: "#/definitions/TicketInventoryItemInput"
+
+    TicketInventoryItemInput:
+        type: object
+        required: [inventory_id, quantity]
+        properties:
+            inventory_id:
+                type: integer
+            quantity:
+                type: integer
+
+    InventoryCreate:
+        type: object
+        required: [name, price]
+        properties:
+            name:
+                type: string
+            price:
+                type: number
+                format: float
+
+    InventoryUpdate:
+        type: object
+        properties:
+            price:
+                type: number
+                format: float
