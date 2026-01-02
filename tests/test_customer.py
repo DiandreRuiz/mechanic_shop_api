@@ -13,3 +13,14 @@ class TestCustomer(unittest.TestCase):
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()
+            
+    def test_customer(self):
+        customer_payload = {
+            "name": "Diandre The Example",
+            "email": "druiz@email.com",
+            "phone": "2159151004",
+            "password": "this is my new password"
+        }
+        response = self.client.post("/customers/", json=customer_payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json['name'], "Diandre The Example")
