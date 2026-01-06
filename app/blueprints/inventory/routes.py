@@ -12,10 +12,10 @@ def get_inventory_items():
     try:
         page = int(request.args.get("page"))
         per_page = int(request.args.get("per_page"))
-        query = select(Inventory)
+        query = select(Inventory).order_by(Inventory.id)
         inventory_items = db.paginate(query, page=page, per_page=per_page)
     except:
-        query = select(Inventory)
+        query = select(Inventory).order_by(Inventory.id)
         inventory_items = db.session.execute(query).scalars().all()
     
     return inventory_items_schema.jsonify(inventory_items), 200
@@ -57,7 +57,7 @@ def update_inventory_item(inventory_id):
         return jsonify({"error": "Missing request body"}), 400
     
     try:
-        inventory_data: Dict = inventory_item_schema.load(data, partial=True)
+        inventory_data: Dict = inventory_item_schema.load(data)
     except ValidationError as e:
         return jsonify(e.messages), 400
 
