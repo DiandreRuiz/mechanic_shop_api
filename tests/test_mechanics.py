@@ -90,10 +90,6 @@ class TestMechanics(unittest.TestCase):
         self.assertEqual(actual_names, expected_names)
     
     def test_create_mechanic(self):
-        """
-        test 200 & response.json
-        test uniqueness check
-        """
         
         # test status & fields
         payload = {
@@ -106,6 +102,7 @@ class TestMechanics(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIn('id', response.json)
         
+        # test data
         fields = ['name', 'email', 'phone', 'salary']
         for f in fields:
             self.assertEqual(response.json[f], payload[f])

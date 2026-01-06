@@ -58,10 +58,14 @@ def create_ticket():
         return jsonify(e.messages), 400
     
     # Create new ticket & add
+    customer = db.session.get(Customer, ticket_data['customer_id'])
+    if not customer:
+        return jsonify({'error': f'Could not find customer with id: {ticket_data['customer_id']}'}), 404
+    
     new_ticket = Ticket(**ticket_data)
     db.session.add(new_ticket)
     db.session.commit()
-    
+        
     return ticket_schema.jsonify(new_ticket), 201
 
 @tickets_bp.route("/<int:ticket_id>", methods=["PUT"])

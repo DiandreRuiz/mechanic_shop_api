@@ -47,7 +47,7 @@ class Ticket(Base):
     VIN: Mapped[str] = mapped_column(String(255), nullable=False)
     service_date: Mapped[date] = mapped_column(Date, nullable=False)
     service_description: Mapped[str] = mapped_column(String(1000), nullable=False)
-    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"), nullable=False)
     
     customer: Mapped["Customer"] = relationship(back_populates="tickets")
     mechanics: Mapped[List["Mechanic"]] = relationship(secondary=ticket_mechanic_joint_table, back_populates="tickets")

@@ -63,13 +63,7 @@ class TestTickets(unittest.TestCase):
             self.assertEqual(expected, received)
             
     def test_get_ticket(self):
-        """
-        - Seed Customer, Ticket
-        - Test status_code
-        - Test data correctness
-        - Test persistence
-        - Test serialization
-        """
+        
         # seed customer
         customer = Customer(
             name='test_customer',
@@ -129,3 +123,57 @@ class TestTickets(unittest.TestCase):
         response = self.client.get("/tickets/my-tickets", headers=headers)
         
         self.assertEqual(response.status_code, 200)
+        
+    def test_create_ticket(self):
+        """
+        - test status
+        - test fields
+        - test persistence
+        - test payload > data
+        - test uniqueness violation
+        - test malformed
+        """
+        # seed customer
+        customer = Customer(
+            name='test_customer',
+            email='test@email.com',
+            phone='2159151004',
+            password='test-password'
+        )
+        
+        db.session.add(customer)
+        db.session.flush()
+        
+        payload = {
+            'VIN': '1111111',
+            'service_date': '2026-01-06',
+            'service_description': 'this is an example description',
+            'customer_id': customer.id
+        }
+        
+        # test status & fields
+        fields = ['name', 'email', 'phone', 'password']
+        response = self.client.post('/tickets/', json=payload)
+        self.assertEqual(response.status_code, 201)
+        for f in fields:
+            self.assertIn(f, response.json)
+        
+        # test payload > data
+        for f in fields:
+            self.assertEqual(response.json[f], payload[f])
+        
+        # test persistance
+        created = db.session.get(Ticket, response.json['id'])
+        self.assertIsNotNone(created)
+        
+        # test uniqueness violation
+        response = self.client.post('/tickets/', json=payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['error'])
+        
+        # test malformed
+        del customer['name']
+        
+        
+        
+        
