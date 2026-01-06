@@ -19,7 +19,7 @@ class TestInventory(unittest.TestCase):
         self.ctx.pop()
         
     def test_get_inventory(self):
-        # Add test inventory items
+        # seed inventory items
         test_invetory_items = [
             Inventory(name="test0", price=1.00),
             Inventory(name="test1", price=5.99),
