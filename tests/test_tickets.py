@@ -172,7 +172,7 @@ class TestTickets(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         
         # test malformed
-        del customer['name']
+        del payload['VIN']
         response = self.client.post('/tickets/', json=payload)
         self.assertEqual(response.status_code, 400)
 
