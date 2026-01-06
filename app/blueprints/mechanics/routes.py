@@ -32,7 +32,7 @@ def get_mechanic(mechanic_id):
 def get_top_3_mechanics():
     query = select(Mechanic)
     mechanics = db.session.execute(query).scalars().all()
-    mechanics = sorted(mechanics, key=lambda m: len(m.tickets))
+    mechanics = sorted(mechanics, key=lambda m: len(m.tickets), reverse=True)[0:3]
     
     return mechanics_with_ticket_count_schema.jsonify(mechanics), 200
 

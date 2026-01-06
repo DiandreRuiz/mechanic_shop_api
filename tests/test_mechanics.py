@@ -51,6 +51,9 @@ class TestMechanics(unittest.TestCase):
             password='test-password'
         )
         
+        db.session.add(customer)
+        db.session.flush()
+        
         mechanics = [
             Mechanic(name='test0', email='test0@example.com', phone="1111111111", salary=100000),
             Mechanic(name='test1', email='test1@example.com', phone="2222222222", salary=200000),
@@ -73,8 +76,6 @@ class TestMechanics(unittest.TestCase):
         m_2.tickets.append(tickets[4])
         
         # add all rows
-        db.session.add(customer)
-        db.session.flush()
         db.session.add_all(mechanics + tickets)
         db.session.commit()
         
@@ -87,6 +88,38 @@ class TestMechanics(unittest.TestCase):
         expected_names = [m_0.name, m_1.name, m_2.name]
         actual_names = [item['name'] for item in response.json]
         self.assertEqual(actual_names, expected_names)
+    
+    def test_create_mechanic(self):
+        """
+        test 200 & response.json
+        test uniqueness check
+        """
+        
+        # test status & fields
+        payload = {
+            'name': 'test0',
+            'email': 'test@example.com',
+            'phone': '2159151004',
+            'salary': 100000
+        }
+        response = self.client.post('/mechanics/', json=payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertIn('id', response.json)
+        
+        fields = ['name', 'email', 'phone', 'salary']
+        for f in fields:
+            self.assertEqual(response.json[f], payload[f])
+            
+        # test persistence
+        created_id = response.json['id']
+        created = db.session.get(Mechanic, created_id)
+        self.assertIsNotNone(created)
+        self.assertEqual(created.email, payload['email'])
+        
+        # test uniqueness violation
+        response = self.client.post('/mechanics/', json=payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['error'], f"Mechanic already exists with email: {payload['email']}")
         
         
         
