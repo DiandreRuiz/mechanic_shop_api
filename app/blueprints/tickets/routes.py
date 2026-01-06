@@ -51,8 +51,8 @@ def create_ticket():
     
     # Validate existence of payload
     data = request.get_json()
-    if data is None:
-        return jsonify({"error": "Missing request JSON body"}), 400
+    if not data:
+        return jsonify({"error": "Request body cannot be empty"}), 400
     
     # Validate payload schema
     try:

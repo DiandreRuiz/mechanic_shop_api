@@ -130,8 +130,8 @@ class TestTickets(unittest.TestCase):
         - test fields
         - test persistence
         - test payload > data
-        - test uniqueness violation
         - test malformed
+        - test customer not found
         """
         # seed customer
         customer = Customer(
@@ -171,8 +171,19 @@ class TestTickets(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['error'])
         
+        # test customer not found
+        payload['customer_id'] = 9999
+        response = self.client.post('/tickets/', json=payload)
+        self.assertEqual(response.status_code, 404)
+        
         # test malformed
         del customer['name']
+        response = self.client.post('/tickets/', json=payload)
+        self.assertEqual(response.status_code, 400)
+
+        # test empty request body
+        response = self.client.post('/tickets/', json={})
+        self.assertEqual(response.status_code, 400)
         
         
         
