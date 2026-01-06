@@ -53,9 +53,6 @@ class TestCustomer(unittest.TestCase):
         db.session.add(self.customer)
         db.session.commit()
         
-        # Generate access token
-        self.token = encode_token(self.customer.id)
-        
         # Attempt login with token
         credentials = {
             "email": "johnpork@gmail.com",
@@ -65,3 +62,12 @@ class TestCustomer(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json['status'], "success")
         return response.json['auth_token']
+    
+    def test_invalid_login(self):
+        credentials = {
+            "email": "andrew@example.com",
+            "password": "bad-password"
+        }
+        response = self.client.post("/customers/login", json=credentials)
+        self.assertEqual(response.status_code, 401)
+        print(response.json)
