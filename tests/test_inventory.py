@@ -89,6 +89,41 @@ class TestInventory(unittest.TestCase):
         
     def test_update_inventory_item(self):
         # seed known inventory item
-        inventory_item
+        self.inventory_item = Inventory(name="test_item", price=6.99)
+        db.session.add(self.inventory_item)
+        db.session.commit()
         
+        # update seeded item & test
+        updated_item = {
+            'name': 'updated_name',
+            'price': 9.99
+        }
+        response = self.client.put(f'/inventory/{self.inventory_item.id}', json=updated_item)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['id'], self.inventory_item.id)
+        self.assertEqual(response.json['name'], updated_item['name'])
+        self.assertEqual(response.json['price'], updated_item['price'])
         
+        # verify db persistence via ORM object
+        db.session.refresh(self.inventory_item)
+        self.assertEqual(self.inventory_item.name, updated_item['name'])
+        self.assertEqual(self.inventory_item.price, updated_item['price'])
+        
+    def test_delete_inventory_item(self):
+        # seed known inventory item to delete
+        self.inventory_item = Inventory(name='test_item', price=1.99)
+        db.session.add(self.inventory_item)
+        db.session.commit()
+        
+        # test deletion of known item
+        response = self.client.delete(f'/inventory/{self.inventory_item.id}')
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(response.data)
+        
+        # assert record is gone
+        self.assertIsNone(db.session.get(Inventory, self.inventory_item.id))
+        
+        # test deletion of non-existant item
+        nonexistant_id = self.inventory_item.id + 9999
+        response = self.client.delete(f'/inventory/{nonexistant_id}')
+        self.assertEqual(response.status_code, 404)
