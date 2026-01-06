@@ -20,12 +20,12 @@ class TestInventory(unittest.TestCase):
         
     def test_get_inventory(self):
         # seed inventory items
-        test_invetory_items = [
+        test_inventory_items = [
             Inventory(name="test0", price=1.00),
             Inventory(name="test1", price=5.99),
             Inventory(name="test2", price=2.99)
         ]
-        db.session.add_all(test_invetory_items)
+        db.session.add_all(test_inventory_items)
         db.session.commit()
         
         # page 1, 1 response per page
@@ -51,7 +51,7 @@ class TestInventory(unittest.TestCase):
         # seeded data check
         response = self.client.get('/inventory/?per_page=3&page=1')
         names = { item["name"] for item in response.json }     
-        self.assertSetEqual(names, { i.name for i in test_invetory_items })
+        self.assertSetEqual(names, { i.name for i in test_inventory_items })
         
         # out of range check
         response = self.client.get('/inventory/?per_page=1&page=4')
