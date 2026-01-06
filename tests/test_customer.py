@@ -17,15 +17,26 @@ class TestCustomer(unittest.TestCase):
     def tearDown(self):
         # clean up resources including db session (db connection) & pop app context
         db.session.remove()
-        self.ctx.pop()        
+        db.engine.dispose()
+        self.ctx.pop()       
             
     def test_customer(self):
         customer_payload = {
-            "name": "Diandre The Example",
-            "email": "druiz@email.com",
-            "phone": "2159151004",
-            "password": "this is my new password"
+            "name": "Billy The Example",
+            "email": "billybob@gmail.com",
+            "phone": "1222222222",
+            "password": "an example password"
         }
         response = self.client.post("/customers/", json=customer_payload)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json['name'], "Diandre The Example")
+        self.assertEqual(response.json['name'], "Billy The Example")
+        
+    def test_invalid_customer(self):
+        customer_payload = {
+            "namef": "Billy The Example",
+            "email": "billybob@gmail.com",
+            "phone": "1222222222",
+            "password": "an example password"
+        }
+        response = self.client.post("/customers/", json=customer_payload)
+        self.assertEqual(response.status_code, 400)
