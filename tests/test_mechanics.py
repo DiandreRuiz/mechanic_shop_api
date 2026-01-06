@@ -29,7 +29,7 @@ class TestMechanics(unittest.TestCase):
         db.session.add_all(mechanics)
         db.session.commit()
         
-        # test get
+        # test status_code & quantity
         response = self.client.get('/mechanics/')
         
         self.assertEqual(response.status_code, 200)
@@ -162,12 +162,6 @@ class TestMechanics(unittest.TestCase):
         
         deleted = db.session.get(Mechanic, mechanic_id)
         self.assertIsNone(deleted)
-        
-        
-            
-        
-        
 
-        
         
        
