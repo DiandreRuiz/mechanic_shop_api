@@ -61,7 +61,59 @@ class TestTickets(unittest.TestCase):
                 
             received = { item[f] for item in response.json }
             self.assertEqual(expected, received)
-    
+            
+    def test_get_ticket(self):
+        """
+        - Seed Customer, Ticket
+        - Test status_code
+        - Test data correctness
+        - Test persistence
+        - Test serialization
+        """
+        # seed customer
+        customer = Customer(
+            name='test_customer',
+            email='test@email.com',
+            phone='2159151004',
+            password='test-password'
+        )
+        
+        db.session.add(customer)
+        db.session.flush()
+        
+        # seed tickets
+        tickets = [
+            Ticket(VIN="1111111", service_date=date.today(), service_description="test description 0", customer_id=customer.id),
+            Ticket(VIN="2222222", service_date=date.today(), service_description="test description 1", customer_id=customer.id),
+            Ticket(VIN="3333333", service_date=date.today(), service_description="test description 2", customer_id=customer.id),
+            Ticket(VIN="4444444", service_date=date.today(), service_description="test description 3", customer_id=customer.id),
+            Ticket(VIN="5555555", service_date=date.today(), service_description="test description 4", customer_id=customer.id)
+        ]
+        
+        db.session.add_all(tickets)
+        db.session.commit()
+        
+        # test status_code
+        t_0, t_1, t_2 = tickets[0], tickets[1], tickets[2]
+        test_tickets = [t_0, t_1, t_2]
+        
+        # test identity & data
+        fields = ['VIN', 'service_date', 'service_description', 'customer_id']
+        for t in test_tickets:
+            response = self.client.get(f'/tickets/{t.id}')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json['id'], t.id)
+            for f in fields:
+                expected = getattr(t, f)
+                if f == "service_date": expected = expected.isoformat()
+                self.assertEqual(response.json[f], expected)
+                
+        # test key presence
+        for t in test_tickets:
+            response = self.client.get(f'/tickets/{t.id}')
+            for f in fields + ['id']:
+                self.assertIn(f, response.json)
+
     def test_get_my_tickets(self):
         self.customer = Customer(
             name="john pork",
