@@ -1,4 +1,4 @@
-from app.models import Mechanic, Ticket
+from app.models import Mechanic, Ticket, Customer
 from app.extensions import db
 from app import create_app
 from datetime import date
@@ -43,7 +43,14 @@ class TestMechanics(unittest.TestCase):
             self.assertSetEqual(expected, response_values)
             
     def test_get_top_3_mechanics(self):
-        # seed mechanics and tickets
+        # seed customer, mechanics and tickets
+        customer = Customer(
+            name='test_customer',
+            email='test@email.com',
+            phone='2159151004',
+            password='test-password'
+        )
+        
         mechanics = [
             Mechanic(name='test0', email='test0@example.com', phone="1111111111", salary=100000),
             Mechanic(name='test1', email='test1@example.com', phone="2222222222", salary=200000),
@@ -51,11 +58,11 @@ class TestMechanics(unittest.TestCase):
             Mechanic(name='test3', email='test3@example.com', phone="4444444444", salary=400000),
         ]
         tickets = [
-            Ticket(VIN="1111111", service_date=date.today(), service_description="test description 0"),
-            Ticket(VIN="2222222", service_date=date.today(), service_description="test description 1"),
-            Ticket(VIN="3333333", service_date=date.today(), service_description="test description 2"),
-            Ticket(VIN="4444444", service_date=date.today(), service_description="test description 3"),
-            Ticket(VIN="5555555", service_date=date.today(), service_description="test description 4")
+            Ticket(VIN="1111111", service_date=date.today(), service_description="test description 0", customer_id=customer.id),
+            Ticket(VIN="2222222", service_date=date.today(), service_description="test description 1", customer_id=customer.id),
+            Ticket(VIN="3333333", service_date=date.today(), service_description="test description 2", customer_id=customer.id),
+            Ticket(VIN="4444444", service_date=date.today(), service_description="test description 3", customer_id=customer.id),
+            Ticket(VIN="5555555", service_date=date.today(), service_description="test description 4", customer_id=customer.id)
         ]
         
         # seed ticket assignments
@@ -66,6 +73,8 @@ class TestMechanics(unittest.TestCase):
         m_2.tickets.append(tickets[4])
         
         # add all rows
+        db.session.add(customer)
+        db.session.flush()
         db.session.add_all(mechanics + tickets)
         db.session.commit()
         
