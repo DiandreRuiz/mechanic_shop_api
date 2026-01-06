@@ -125,14 +125,7 @@ class TestTickets(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
     def test_create_ticket(self):
-        """
-        - test status
-        - test fields
-        - test persistence
-        - test payload > data
-        - test malformed
-        - test customer not found
-        """
+        
         # seed customer
         customer = Customer(
             name='test_customer',
