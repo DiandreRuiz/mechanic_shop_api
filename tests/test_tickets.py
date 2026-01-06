@@ -47,14 +47,20 @@ class TestTickets(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json), len(tickets))
         
-        # test fields
+        # test persistence via id
+        expected = { t.id for t in tickets }
+        received = { item['id'] for item in response.json }
+        self.assertEqual(expected, received)
+        
+        # test serialization
         fields = ['VIN', 'service_date', 'service_description', 'customer_id']
         for f in fields:
             expected = { getattr(t, f) for t in tickets }
+            if f == 'service_date': # normalize for ORM objects
+                expected = { d.isoformat() for d in expected }
+                
             received = { item[f] for item in response.json }
             self.assertEqual(expected, received)
-        
-        
     
     def test_get_my_tickets(self):
         self.customer = Customer(
