@@ -121,6 +121,50 @@ class TestMechanics(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['error'], f"Mechanic already exists with email: {payload['email']}")
         
+    def test_update_mechanic(self):
+        # seed Mechanic row
+        mechanic = Mechanic(name='test', email='test@example.com', phone='2159151004', salary=100000)
+        db.session.add(mechanic)
+        db.session.commit()
+        
+        # test status & fields
+        payload = {
+            'name': 'u_test',
+            'email': 'u_email@example.com',
+            'phone': '2159999999',
+            'salary': 200000
+        }
+        response = self.client.put(f'/mechanics/{mechanic.id}', json=payload)
+        self.assertEqual(response.status_code, 200)
+        fields = ['name', 'email', 'phone', 'salary']
+        for f in fields:
+            self.assertEqual(payload[f], response.json[f])
+            
+        # assert db persistence, not just ORM item attribute
+        db.session.refresh(mechanic)
+        for f in fields:
+            self.assertEqual(getattr(mechanic, f), payload[f])
+            
+        # assert id consistency
+        self.assertEqual(mechanic.id, response.json['id'])
+        
+    def test_delete_mechanic(self):
+        # seed mechanic record
+        mechanic = Mechanic(name='test0', email='test@example.com', phone='2159151004', salary=100000)
+        db.session.add(mechanic)
+        db.session.commit()
+        
+        mechanic_id = mechanic.id
+        
+        # test status & deletion
+        response = self.client.delete(f'/mechanics/{mechanic.id}')
+        self.assertEqual(response.status_code, 204)
+        
+        deleted = db.session.get(Mechanic, mechanic_id)
+        self.assertIsNone(deleted)
+        
+        
+            
         
         
 
