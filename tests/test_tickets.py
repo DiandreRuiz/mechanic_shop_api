@@ -152,7 +152,7 @@ class TestTickets(unittest.TestCase):
         }
         
         # test status & fields
-        fields = ['name', 'email', 'phone', 'password']
+        fields = ['VIN', 'service_date', 'service_description', 'customer_id']
         response = self.client.post('/tickets/', json=payload)
         self.assertEqual(response.status_code, 201)
         for f in fields:
@@ -165,11 +165,6 @@ class TestTickets(unittest.TestCase):
         # test persistance
         created = db.session.get(Ticket, response.json['id'])
         self.assertIsNotNone(created)
-        
-        # test uniqueness violation
-        response = self.client.post('/tickets/', json=payload)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json['error'])
         
         # test customer not found
         payload['customer_id'] = 9999
