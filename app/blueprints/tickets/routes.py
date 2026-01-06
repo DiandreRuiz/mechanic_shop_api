@@ -48,10 +48,13 @@ def get_my_tickets(customer_id):
     
 @tickets_bp.route("/", methods=["POST"])
 def create_ticket():
+    
+    # Validate existence of payload
     data = request.get_json()
     if data is None:
         return jsonify({"error": "Missing request JSON body"}), 400
     
+    # Validate payload schema
     try:
         ticket_data = ticket_schema.load(data)
     except ValidationError as e:
@@ -62,6 +65,7 @@ def create_ticket():
     if not customer:
         return jsonify({'error': f'Could not find customer with id: {ticket_data['customer_id']}'}), 404
     
+    # NOTE: There can be tickets with same VIN & service_date
     new_ticket = Ticket(**ticket_data)
     db.session.add(new_ticket)
     db.session.commit()
