@@ -89,8 +89,8 @@ def update_ticket(customer_id, ticket_id):
         
     
     data = request.get_json()
-    if data is None:
-        return jsonify({"error": "Missing request body JSON"}), 400
+    if not data:
+        return jsonify({"error": "Empty request body"}), 400
     
     try:
         ticket_data: Dict = ticket_schema.load(data)

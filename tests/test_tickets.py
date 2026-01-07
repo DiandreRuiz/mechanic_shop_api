@@ -173,6 +173,45 @@ class TestTickets(unittest.TestCase):
         response = self.client.post('/tickets/', json={})
         self.assertEqual(response.status_code, 400)
         
+    def test_update_ticket(self):
+        """
+        - test missing auth token
+        - test expired auth token
+        - test invalid auth token
+        - test ticket existance
+        - test ticket customer_id mismatch
+        - test no matching customer id
+        - test missing data
+        - test malformed (Validation Error)
+        """
+        # seed customer
+        customer = Customer(name='test0', phone='1234567890', email='test@example.com', password='testpassword')
+        db.session.add(customer)
+        db.session.flush()
+        
+        # seed ticket
+        ticket = Ticket(VIN='1111111', service_date=date.today(), service_description='example description', customer_id=customer.id)
+        db.session.add(ticket)
+        db.session.commit()
+        
+        payload = {
+            'VIN': '2222222',
+            'service_date': '2026-01-07',
+            'service_description': 'updated description',
+            'customer_id': customer.id
+        }
+        token = encode_token(customer.id)
+        headers = { 'Authorization': f'Bearer {token}' }
+        response = self.client.put(f'/tickets/{ticket.id}', json=payload, headers=headers)
+        
+        # test status_code & ORM update
+        self.assertEqual(response.status_code, 200)
+        fields = ['VIN', 'service_date', 'service_description', 'customer_id']
+        for f in fields:
+            self.assertEqual(response.json[f], payload[f])
+        
+        
+        
         
         
         
