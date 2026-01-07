@@ -216,6 +216,12 @@ class TestTickets(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['error'], 'Empty request body')
         
+    def test_update_ticket_mechanics(self):
+        """
+        - 
+        
+        """ 
+        
         
         
         
