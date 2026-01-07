@@ -175,13 +175,13 @@ class TestTickets(unittest.TestCase):
         
     def test_update_ticket(self):
         """
+        TODO:                   /
         - test missing auth token
         - test expired auth token
         - test invalid auth token
         - test ticket existance
         - test ticket customer_id mismatch
         - test no matching customer id
-        - test missing data
         - test malformed (Validation Error)
         """
         # seed customer
@@ -209,6 +209,12 @@ class TestTickets(unittest.TestCase):
         fields = ['VIN', 'service_date', 'service_description', 'customer_id']
         for f in fields:
             self.assertEqual(response.json[f], payload[f])
+            
+        # test missing data
+        payload = {}
+        response = self.client.put(f'/tickets/{ticket.id}', json=payload, headers=headers)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['error'], 'Empty request body')
         
         
         
