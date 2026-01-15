@@ -17,13 +17,13 @@ jobs:
               uses: actions/setup-python@v5
               with:
                 python-version: "3.12"
+                cache: "pip"
             
             - name: Create Virtual Environment & Install Dependencies
               run: |
                 python -m venv .venv
-                source .venv/bin/activate
-                python -m pip install --upgrade pip
-                python -m pip install -r requirements.txt
+                .venv/bin/python -m pip install --upgrade pip
+                .venv/bin/python -m pip install -r requirements.txt
 
             - name: Print Debugging Information
               run: |
@@ -33,6 +33,7 @@ jobs:
                 echo "Contents of site-packages: $(ls -l .venv/lib/python*/site-packages)"
 
             - name: Run tests # -s -> start directory | -p -> file pattern
-              run: python -m unittest discover -s tests -p 'test_*.py'
+              run: |
+                .venv/bin/python -m unittest discover -s tests -p 'test_*.py'
 
             
