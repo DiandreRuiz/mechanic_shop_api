@@ -105,6 +105,7 @@ def update_ticket(customer_id, ticket_id):
         
     return ticket_schema.jsonify(ticket), 200
 
+# NOTE: This should probably require secondary auth for Admin access
 @tickets_bp.route("/<int:ticket_id>/update-mechanics", methods=["PUT"])
 def update_ticket_mechanics(ticket_id):
     try:

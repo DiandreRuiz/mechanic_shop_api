@@ -1,4 +1,5 @@
-from app.models import Customer, Ticket
+from app.blueprints.tickets.schemas import UpdateTicketMechanicsSchema
+from app.models import Customer, Ticket, Mechanic
 from app.extensions import db
 from app.utils.util import encode_token
 from app import create_app
@@ -220,10 +221,48 @@ class TestTickets(unittest.TestCase):
         self.assertEqual(response.json['message'], 'Token is missing!')
         
     def test_update_ticket_mechanics(self):
-        """
-        - 
-        
-        """ 
+        # seed customers
+        existing_customers = [
+            Customer(name='test0', phone='1111111111', email='me0@ex.com', password='testpass0'),
+            Customer(name='test1', phone='2222222222', email='me1@ex.com', password='testpass1'),
+        ]
+        db.session.add_all(existing_customers)
+        db.session.flush()
+
+        # seed ticket owned by customer0
+        ticket = Ticket(
+            VIN=0,
+            service_date=date.today(),
+            service_description='example description',
+            customer_id=existing_customers[0].id
+        )
+        db.session.add(ticket)
+        db.session.commit()
+
+        # seed mechanics
+        m1 = Mechanic(name='m1', email='m1@me.com', phone='9999999999', salary=100000)
+        m2 = Mechanic(name='m2', email='m2@me.com', phone='8888888888', salary=120000)
+        db.session.add_all([m1, m2])
+        db.session.commit()
+
+        # ADD m1
+        payload_add = {"add_mechanic_ids": [m1.id], "remove_mechanic_ids": []}
+        resp = self.client.put(f"/tickets/{ticket.id}/update-mechanics", json=payload_add)
+        self.assertEqual(resp.status_code, 200)
+
+        db.session.expire_all()
+        updated_ticket = db.session.get(Ticket, ticket.id)
+        self.assertIn(m1, updated_ticket.mechanics)
+
+        # ADD m2, REMOVE m1
+        payload_swap = {"add_mechanic_ids": [m2.id], "remove_mechanic_ids": [m1.id]}
+        resp2 = self.client.put(f"/tickets/{ticket.id}/update-mechanics", json=payload_swap)
+        self.assertEqual(resp2.status_code, 200)
+
+        db.session.expire_all()
+        updated_ticket2 = db.session.get(Ticket, ticket.id)
+        self.assertIn(m2, updated_ticket2.mechanics)
+        self.assertNotIn(m1, updated_ticket2.mechanics)
         
         
         
