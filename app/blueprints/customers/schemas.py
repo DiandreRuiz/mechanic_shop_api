@@ -7,6 +7,7 @@ class CustomerSchema(ma.SQLAlchemyAutoSchema):
         model = Customer
         include_fk=True
         unknown = EXCLUDE
+    password = fields.String(load_only=True)
         
 class LoginSchema(ma.Schema):
     class Meta:
