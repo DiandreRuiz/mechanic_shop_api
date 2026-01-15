@@ -174,16 +174,8 @@ class TestTickets(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         
     def test_update_ticket(self):
-        """
-        TODO:                   /
-        - test missing auth token
-        - test expired auth token
-        - test invalid auth token
-        - test ticket existance
-        - test ticket customer_id mismatch
-        - test no matching customer id
-        - test malformed (Validation Error)
-        """
+        # NOTE: Partial test coverage
+        
         # seed customer
         customer = Customer(name='test0', phone='1234567890', email='test@example.com', password='testpassword')
         db.session.add(customer)
@@ -215,6 +207,17 @@ class TestTickets(unittest.TestCase):
         response = self.client.put(f'/tickets/{ticket.id}', json=payload, headers=headers)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['error'], 'Empty request body')
+        
+        # test missing auth token
+        payload = {
+            'VIN': '2222222',
+            'service_date': '2026-01-07',
+            'service_description': 'updated description',
+            'customer_id': customer.id
+        }
+        response = self.client.put(f'/tickets/{ticket.id}', json=payload)
+        self.assertEqual(response.status_code, 401) # unauthorized response
+        self.assertEqual(response.json['message'], 'Token is missing!')
         
     def test_update_ticket_mechanics(self):
         """
