@@ -2,6 +2,7 @@ from app import create_app
 from app.extensions import db
 from app.models import Customer
 from app.blueprints.customers.schemas import customer_schema
+from sqlalchemy import select
 import unittest
 
 class TestCustomer(unittest.TestCase):
@@ -87,25 +88,38 @@ class TestCustomer(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_update_customer(self):
-        # Add known target Customer
-        self.customer = Customer(
+        # seed customer
+        customer = Customer(
             name="Test-Customer",
             email="test-email@example.com",
             phone="2159151004",
             password="AnExamplePassword"
         )
-        db.session.add(self.customer)
+        db.session.add(customer)
         db.session.commit()
         
-        # Update Known target Customer
-        updated_customer = {
+        # update seeded customer
+        payload = {
             "name": "Updated Name",
             "email": "UpdatedEmail@gmail.com",
             "phone": "Updated Phone",
             "password": "Updated Password"
         }
         
-        response = self.client.put(f"/customers/{self.customer.id}", json=updated_customer)
+        # test status_code
+        response = self.client.put(f"/customers/{customer.id}", json=payload)
         self.assertEqual(response.status_code, 200)
-        for k in updated_customer:
-            self.assertEqual(response.json[k], updated_customer[k])
+        
+        # test data persistence (no password)
+        for k in payload:
+            if k != 'password':
+                self.assertEqual(response.json[k], payload[k])
+                
+        # test password separately due to load_only=True in 
+        # schema def for 'password' field in Customer
+        
+        db.session.refresh(customer) # protect against stale cache
+        live_password = customer.password
+        self.assertEqual(payload['password'], live_password)
+        
+        
