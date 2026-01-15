@@ -159,7 +159,7 @@ def assign_mechanic(ticket_id, mechanic_id):
 
 # Rate limit to prevent accidental mass removals of mechanics from tickets
 @tickets_bp.route("/<int:ticket_id>/remove-mechanic/<int:mechanic_id>", methods=["PUT"])
-@limiter.limit("3 per hour")
+@limiter.limit("20 per hour")
 def remove_mechanic(ticket_id, mechanic_id):
     ticket = db.session.get(Ticket, ticket_id)
     mechanic = db.session.get(Mechanic, mechanic_id)

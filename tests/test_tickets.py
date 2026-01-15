@@ -1,8 +1,8 @@
-from app.blueprints.tickets.schemas import UpdateTicketMechanicsSchema
-from app.models import Customer, Ticket, Mechanic
+from app.models import Customer, Ticket, Mechanic, Inventory, TicketInventory
 from app.extensions import db
 from app.utils.util import encode_token
 from app import create_app
+from sqlalchemy import select
 from datetime import date
 import unittest
 
@@ -334,6 +334,168 @@ class TestTickets(unittest.TestCase):
         updated_ticket_2 = db.session.get(Ticket, ticket.id)
         self.assertIn(mechanic, updated_ticket_2.mechanics)
         self.assertEqual(len(updated_ticket_2.mechanics), 1)
+    
+    def test_remove_mechanic(self):
+        # NOTE: Partial test coverage
+
+        # seed customer
+        customer = Customer(
+            name='test_customer',
+            email='test@email.com',
+            phone='2159151004',
+            password='test-password'
+        )
+        db.session.add(customer)
+        db.session.flush()
+
+        # seed ticket
+        ticket = Ticket(
+            VIN="1111111",
+            service_date=date.today(),
+            service_description="test description",
+            customer_id=customer.id
+        )
+        db.session.add(ticket)
+        db.session.commit()
+
+        # seed mechanics
+        m1 = Mechanic(
+            name='m1',
+            email='m1@email.com',
+            phone='9999999999',
+            salary=100000
+        )
+        m2 = Mechanic(
+            name='m2',
+            email='m2@email.com',
+            phone='8888888888',
+            salary=120000
+        )
+        db.session.add_all([m1, m2])
+        db.session.commit()
+
+        # seed relationship: ticket has m1
+        ticket.mechanics.append(m1)
+        db.session.commit()
+
+        # test ticket not found
+        response = self.client.put(f"/tickets/999999/remove-mechanic/{m1.id}")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json["error"], "Could not locate Ticket with id: 999999")
+
+        # test mechanic not found
+        response = self.client.put(f"/tickets/{ticket.id}/remove-mechanic/999999")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json["error"], "Could not locate mechanic with id: 999999")
+
+        # test mechanic not assigned to ticket
+        response = self.client.put(f"/tickets/{ticket.id}/remove-mechanic/{m2.id}")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.json["error"],
+            f"Mechanic id: {m2.id} not found in mechanics for Ticket id: {ticket.id}"
+        )
+
+        # test remove mechanic
+        response = self.client.put(f"/tickets/{ticket.id}/remove-mechanic/{m1.id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["message"], "Mechanic successfully removed from ticket.")
+        self.assertEqual(response.json["ticket_id"], ticket.id)
+        self.assertEqual(response.json["mechanic_id"], m1.id)
+
+        # test persistence
+        db.session.expire_all()
+        updated_ticket = db.session.get(Ticket, ticket.id)
+        self.assertNotIn(m1, updated_ticket.mechanics)
+
+    def test_add_inventory(self):
+        # NOTE: Partial test coverage
+
+        # seed customer
+        customer = Customer(
+            name='test_customer',
+            email='test@email.com',
+            phone='2159151004',
+            password='test-password'
+        )
+        db.session.add(customer)
+        db.session.flush()
+
+        # seed ticket
+        ticket = Ticket(
+            VIN="1111111",
+            service_date=date.today(),
+            service_description="test description",
+            customer_id=customer.id
+        )
+        db.session.add(ticket)
+        db.session.commit()
+
+        # seed inventory
+        inv1 = Inventory(name="inv1", price=10.0)
+        inv2 = Inventory(name="inv2", price=20.0)
+        inv3 = Inventory(name="inv3", price=30.0)
+        db.session.add_all([inv1, inv2, inv3])
+        db.session.commit()
+
+        # seed existing association: ticket already has inv2
+        db.session.add(TicketInventory(ticket_id=ticket.id, inventory_id=inv2.id, quantity=1))
+        db.session.commit()
+
+        # test ticket not found
+        payload = {"add_inventory_items": [{"inventory_id": inv1.id, "quantity": 2}]}
+        response = self.client.post("/tickets/999999/inventory", json=payload)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json["error"], "Could not find ticket with ticket_id: 999999")
+
+        # test empty add_inventory_items
+        payload = {"add_inventory_items": []}
+        response = self.client.post(f"/tickets/{ticket.id}/inventory", json=payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json["error"], "add_inventory_items key must be a non-empty list")
+
+        # test missing inventory item ids
+        missing_id = 999999
+        payload = {"add_inventory_items": [{"inventory_id": missing_id, "quantity": 1}]}
+        response = self.client.post(f"/tickets/{ticket.id}/inventory", json=payload)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json["error"], "Some inventory items did not exist")
+        self.assertIn("missing_ids", response.json)
+        self.assertEqual(response.json["missing_ids"], [missing_id])
+
+        # test happy path + duplicates already on ticket
+        payload = {
+            "add_inventory_items": [
+                {"inventory_id": inv1.id, "quantity": 2},
+                {"inventory_id": inv2.id, "quantity": 5},  # already associated -> should be duplicate
+                {"inventory_id": inv3.id, "quantity": 1},
+            ]
+        }
+        response = self.client.post(f"/tickets/{ticket.id}/inventory", json=payload)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.json["ticket_id"], ticket.id)
+        self.assertEqual(response.json["requested_count"], 3)
+        self.assertEqual(response.json["added_count"], 2)
+        self.assertEqual(response.json["duplicate_count"], 1)
+
+        self.assertEqual(sorted(response.json["added_inventory_ids"]), sorted([inv1.id, inv3.id]))
+        self.assertEqual(sorted(response.json["duplicate_inventory_ids"]), sorted([inv2.id]))
+
+        # test persistence
+        db.session.expire_all()
+        rows = db.session.execute(
+            select(TicketInventory.inventory_id, TicketInventory.quantity).where(TicketInventory.ticket_id == ticket.id)
+        ).all()
+        row_map = {inv_id: qty for inv_id, qty in rows}
+
+        self.assertIn(inv1.id, row_map)
+        self.assertIn(inv2.id, row_map)
+        self.assertIn(inv3.id, row_map)
+
+        self.assertEqual(row_map[inv1.id], 2)
+        self.assertEqual(row_map[inv2.id], 1)  # original quantity remains unchanged by your endpoint
+        self.assertEqual(row_map[inv3.id], 1)
         
         
         
