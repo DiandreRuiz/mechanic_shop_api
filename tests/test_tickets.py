@@ -264,6 +264,77 @@ class TestTickets(unittest.TestCase):
         self.assertIn(m2, updated_ticket2.mechanics)
         self.assertNotIn(m1, updated_ticket2.mechanics)
         
+    def test_assign_mechanic(self):
+        # NOTE: Partial test coverage
+
+        # seed customer
+        customer = Customer(
+            name='test_customer',
+            email='test@email.com',
+            phone='2159151004',
+            password='test-password'
+        )
+        db.session.add(customer)
+        db.session.flush()
+
+        # seed ticket
+        ticket = Ticket(
+            VIN="1111111",
+            service_date=date.today(),
+            service_description="test description",
+            customer_id=customer.id
+        )
+        db.session.add(ticket)
+        db.session.commit()
+
+        # seed mechanic
+        mechanic = Mechanic(
+            name='test_mechanic',
+            email='mechanic@email.com',
+            phone='9999999999',
+            salary=100000
+        )
+        db.session.add(mechanic)
+        db.session.commit()
+
+        # test ticket not found
+        response = self.client.put(f"/tickets/999999/assign-mechanic/{mechanic.id}")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", response.json)
+        self.assertEqual(response.json["error"], "Could not locate Ticket with id: 999999")
+
+        # test mechanic not found
+        response = self.client.put(f"/tickets/{ticket.id}/assign-mechanic/999999")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", response.json)
+        self.assertEqual(response.json["error"], "Could not locate mechanic with id: 999999")
+
+        # test assign mechanic (happy path)
+        response = self.client.put(f"/tickets/{ticket.id}/assign-mechanic/{mechanic.id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["message"], "Mechanic successfully assigned to ticket.")
+        self.assertEqual(response.json["ticket_id"], ticket.id)
+        self.assertEqual(response.json["mechanic_id"], mechanic.id)
+
+        # test persistence
+        db.session.expire_all()
+        updated_ticket = db.session.get(Ticket, ticket.id)
+        self.assertIn(mechanic, updated_ticket.mechanics)
+        self.assertEqual(len(updated_ticket.mechanics), 1)
+
+        # test duplicate prevention
+        response = self.client.put(f"/tickets/{ticket.id}/assign-mechanic/{mechanic.id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["message"], "Mechanic is already assigned to this ticket.")
+        self.assertEqual(response.json["ticket_id"], ticket.id)
+        self.assertEqual(response.json["mechanic_id"], mechanic.id)
+
+        # test no duplicate association created
+        db.session.expire_all()
+        updated_ticket_2 = db.session.get(Ticket, ticket.id)
+        self.assertIn(mechanic, updated_ticket_2.mechanics)
+        self.assertEqual(len(updated_ticket_2.mechanics), 1)
+        
         
         
         
