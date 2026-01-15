@@ -2,10 +2,12 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt
 from functools import wraps
 from flask import request, jsonify
+import dotenv
 import jose
+import os
 
-
-SECRET_KEY=""
+dotenv.load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 def encode_token(customer_id): # uses unique pieces of info to make our tokens user specific
     payload = {
