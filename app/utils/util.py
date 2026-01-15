@@ -24,11 +24,15 @@ def encode_token(customer_id): # uses unique pieces of info to make our tokens u
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = None
+        
         # Look for token in authorization header
+        token = None
         if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split(" ")[1]
-            # print(token)
+            auth_section = request.headers['Authorization']
+        if 'Bearer' in auth_section:
+            token = auth_section.split(" ")[1]
+        else:
+            token = auth_section
         
         if not token:
             return jsonify({"message": "Token is missing!"}), 401

@@ -26,13 +26,36 @@ paths:
         get:
             tags: [customers]
             summary: "Get all customers"
+            description: "Retrieve a list of all customers. Supports pagination via query parameters."
+            parameters:
+                - in: query
+                  name: page
+                  type: integer
+                  description: "Page number for pagination"
+                - in: query
+                  name: per_page
+                  type: integer
+                  description: "Number of items per page"
             responses:
                 200:
-                    description: "List of customers"
+                    description: "Successfully retrieved list of customers"
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/definitions/CustomerResponse"
+                    examples:
+                        application/json:
+                            - id: 1
+                              name: "John Doe"
+                              email: "john.doe@example.com"
+                              phone: "555-0100"
+                400:
+                    description: "Bad request - invalid query parameters"
 
         post:
             tags: [customers]
             summary: "Create customer"
+            description: "Create a new customer account. Email must be unique."
             parameters:
                 - in: body
                   name: body
@@ -41,29 +64,59 @@ paths:
                       $ref: "#/definitions/CustomerCreate"
             responses:
                 201:
-                    description: "Customer created"
+                    description: "Customer successfully created"
+                    schema:
+                        $ref: "#/definitions/CustomerResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "John Doe"
+                            email: "john.doe@example.com"
+                            phone: "555-0100"
+                400:
+                    description: "Bad request - validation error or email already exists"
+                    examples:
+                        application/json:
+                            error: "Account with email 'john.doe@example.com' already exists."
 
     /customers/{customer_id}:
         get:
             tags: [customers]
             summary: "Get customer by ID"
+            description: "Retrieve detailed information about a specific customer by their ID."
             parameters:
                 - in: path
                   name: customer_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the customer"
             responses:
                 200:
-                    description: "Customer details"
+                    description: "Successfully retrieved customer details"
+                    schema:
+                        $ref: "#/definitions/CustomerResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "John Doe"
+                            email: "john.doe@example.com"
+                            phone: "555-0100"
+                404:
+                    description: "Customer not found"
+                    examples:
+                        application/json:
+                            error: "Could not find customer w/ customer_id 1"
 
         put:
             tags: [customers]
             summary: "Update customer by ID"
+            description: "Update an existing customer's information. Full payload is required and must pass validation."
             parameters:
                 - in: path
                   name: customer_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the customer"
                 - in: body
                   name: body
                   required: true
@@ -71,12 +124,31 @@ paths:
                       $ref: "#/definitions/CustomerCreate"
             responses:
                 200:
-                    description: "Customer updated"
+                    description: "Customer successfully updated"
+                    schema:
+                        $ref: "#/definitions/CustomerResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "John Doe Updated"
+                            email: "john.doe@example.com"
+                            phone: "555-0101"
+                400:
+                    description: "Bad request - validation error"
+                    examples:
+                        application/json:
+                            error: "malformed request body: {'email': ['Not a valid email address.']}"
+                404:
+                    description: "Customer not found or missing request body"
+                    examples:
+                        application/json:
+                            error: "Could not find customer with customer_id of 1"
 
     /customers/login:
         post:
             tags: [customers]
             summary: "Login customer"
+            description: "Authenticate a customer and receive an authentication token for protected routes."
             parameters:
                 - in: body
                   name: body
@@ -88,18 +160,46 @@ paths:
                     description: "Login successful"
                     schema:
                         $ref: "#/definitions/LoginResponse"
+                    examples:
+                        application/json:
+                            status: "success"
+                            message: "Succesfully Logged In"
+                            auth_token: "<jwt>"
+                400:
+                    description: "Bad request - invalid payload"
+                    examples:
+                        application/json:
+                            error: "Invalid payload, expecting 'username' & 'password' keys to be present"
+                401:
+                    description: "Unauthorized - invalid credentials"
+                    examples:
+                        application/json:
+                            messages: "Invalid email or password"
 
     /mechanics/:
         get:
             tags: [mechanics]
             summary: "Get all mechanics"
+            description: "Retrieve a list of all mechanics in the system."
             responses:
                 200:
-                    description: "List of mechanics"
+                    description: "Successfully retrieved list of mechanics"
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/definitions/MechanicResponse"
+                    examples:
+                        application/json:
+                            - id: 1
+                              name: "Jane Smith"
+                              email: "jane.smith@example.com"
+                              phone: "555-0200"
+                              salary: 75000.0
 
         post:
             tags: [mechanics]
             summary: "Create mechanic"
+            description: "Create a new mechanic record. Email must be unique."
             parameters:
                 - in: body
                   name: body
@@ -108,29 +208,61 @@ paths:
                       $ref: "#/definitions/MechanicCreate"
             responses:
                 201:
-                    description: "Mechanic created"
+                    description: "Mechanic successfully created"
+                    schema:
+                        $ref: "#/definitions/MechanicResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "Jane Smith"
+                            email: "jane.smith@example.com"
+                            phone: "555-0200"
+                            salary: 75000.0
+                400:
+                    description: "Bad request - validation error or email already exists"
+                    examples:
+                        application/json:
+                            error: "Mechanic already exists with email: jane.smith@example.com"
 
     /mechanics/{mechanic_id}:
         get:
             tags: [mechanics]
             summary: "Get mechanic by ID"
+            description: "Retrieve detailed information about a specific mechanic by their ID."
             parameters:
                 - in: path
                   name: mechanic_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the mechanic"
             responses:
                 200:
-                    description: "Mechanic details"
+                    description: "Successfully retrieved mechanic details"
+                    schema:
+                        $ref: "#/definitions/MechanicResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "Jane Smith"
+                            email: "jane.smith@example.com"
+                            phone: "555-0200"
+                            salary: 75000.0
+                404:
+                    description: "Mechanic not found"
+                    examples:
+                        application/json:
+                            error: "No mechanic found with id: 1"
 
         put:
             tags: [mechanics]
             summary: "Update mechanic by ID"
+            description: "Update an existing mechanic's information. Full payload is required and must pass validation."
             parameters:
                 - in: path
                   name: mechanic_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the mechanic"
                 - in: body
                   name: body
                   required: true
@@ -138,39 +270,102 @@ paths:
                       $ref: "#/definitions/MechanicCreate"
             responses:
                 200:
-                    description: "Mechanic updated"
+                    description: "Mechanic successfully updated"
+                    schema:
+                        $ref: "#/definitions/MechanicResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "Jane Smith Updated"
+                            email: "jane.smith@example.com"
+                            phone: "555-0201"
+                            salary: 80000.0
+                400:
+                    description: "Bad request - validation error"
+                    examples:
+                        application/json:
+                            error: "malformed request body"
+                404:
+                    description: "Mechanic not found or missing request body"
+                    examples:
+                        application/json:
+                            error: "No mechanic found with mechanic_id: 1"
 
         delete:
             tags: [mechanics]
             summary: "Delete mechanic by ID"
+            description: "Delete a mechanic from the system. The mechanic will be removed from all assigned tickets."
             parameters:
                 - in: path
                   name: mechanic_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the mechanic"
             responses:
                 204:
-                    description: "Mechanic deleted"
+                    description: "Mechanic successfully deleted"
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                    examples:
+                        application/json:
+                            message: "Mechanic with id: 1 successfully deleted!"
+                404:
+                    description: "Mechanic not found"
+                    examples:
+                        application/json:
+                            error: "No mechanic with id: 1 found"
 
     /mechanics/top-3-mechanics:
         get:
             tags: [mechanics]
             summary: "Get top 3 mechanics by ticket count"
+            description: "Retrieve the top 3 mechanics ranked by the number of tickets they are assigned to."
             responses:
                 200:
-                    description: "Top 3 mechanics"
+                    description: "Successfully retrieved top 3 mechanics"
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/definitions/MechanicWithTicketCountResponse"
+                    examples:
+                        application/json:
+                            - name: "Jane Smith"
+                              email: "jane.smith@example.com"
+                              ticket_count: 15
+                            - name: "Bob Johnson"
+                              email: "bob.johnson@example.com"
+                              ticket_count: 12
+                            - name: "Alice Williams"
+                              email: "alice.williams@example.com"
+                              ticket_count: 10
 
     /tickets/:
         get:
             tags: [tickets]
             summary: "Get all tickets"
+            description: "Retrieve a list of all service tickets in the system."
             responses:
                 200:
-                    description: "List of tickets"
+                    description: "Successfully retrieved list of tickets"
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/definitions/TicketResponse"
+                    examples:
+                        application/json:
+                            - id: 1
+                              VIN: "1HGBH41JXMN109186"
+                              service_date: "2024-01-15"
+                              service_description: "Oil change and tire rotation"
+                              customer_id: 1
 
         post:
             tags: [tickets]
             summary: "Create ticket"
+            description: "Create a new service ticket. The customer_id must reference an existing customer."
             parameters:
                 - in: body
                   name: body
@@ -179,12 +374,68 @@ paths:
                       $ref: "#/definitions/TicketCreate"
             responses:
                 201:
-                    description: "Ticket created"
+                    description: "Ticket successfully created"
+                    schema:
+                        $ref: "#/definitions/TicketResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            VIN: "1HGBH41JXMN109186"
+                            service_date: "2024-01-15"
+                            service_description: "Oil change and tire rotation"
+                            customer_id: 1
+                400:
+                    description: "Bad request - validation error or empty request body"
+                    examples:
+                        application/json:
+                            error: "Request body cannot be empty"
+                404:
+                    description: "Customer not found"
+                    examples:
+                        application/json:
+                            error: "Could not find customer with id: 1"
+
+    /tickets/{ticket_id}:
+        get:
+            tags: [tickets]
+            summary: "Get ticket by ID"
+            description: "Retrieve detailed information about a specific ticket by its ID."
+            parameters:
+                - in: path
+                  name: ticket_id
+                  required: true
+                  type: integer
+                  description: "Unique identifier of the ticket"
+            responses:
+                200:
+                    description: "Successfully retrieved ticket details"
+                    schema:
+                        $ref: "#/definitions/TicketResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            VIN: "1HGBH41JXMN109186"
+                            service_date: "2024-01-15"
+                            service_description: "Oil change and tire rotation"
+                            customer_id: 1
+                404:
+                    description: "Ticket not found"
+                    examples:
+                        application/json:
+                            error: "No ticket found with ticket_id: 1"
 
         put:
             tags: [tickets]
-            summary: "Update mechanics on a ticket"
+            summary: "Update ticket by ID"
+            description: "Update an existing ticket. Full payload is required. Requires authentication and the ticket must belong to the authenticated customer."
+            security:
+                - bearerAuth: []
             parameters:
+                - in: path
+                  name: ticket_id
+                  required: true
+                  type: integer
+                  description: "Unique identifier of the ticket"
                 - in: body
                   name: body
                   required: true
@@ -192,74 +443,171 @@ paths:
                       $ref: "#/definitions/TicketCreate"
             responses:
                 200:
-                    description: "Ticket updated"
-
-    /tickets/{ticket_id}:
-        get:
-            tags: [tickets]
-            summary: "Get ticket by ID"
-            parameters:
-                - in: path
-                  name: ticket_id
-                  required: true
-                  type: integer
-            responses:
-                200:
-                    description: "Ticket details"
+                    description: "Ticket successfully updated"
+                    schema:
+                        $ref: "#/definitions/TicketResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            VIN: "1HGBH41JXMN109186"
+                            service_date: "2024-01-16"
+                            service_description: "Oil change, tire rotation, and brake inspection"
+                            customer_id: 1
+                400:
+                    description: "Bad request - validation error or empty request body"
+                    examples:
+                        application/json:
+                            error: "Empty request body"
+                403:
+                    description: "Forbidden - ticket does not belong to authenticated customer"
+                    examples:
+                        application/json:
+                            error: "You are trying to alter a resource that you don't own (judged by auth token)"
+                404:
+                    description: "Ticket or customer not found"
+                    examples:
+                        application/json:
+                            error: "No ticket found with id of 1"
 
     /tickets/my-tickets:
         get:
             tags: [tickets]
             summary: "Get tickets for current user"
+            description: "Retrieve all tickets belonging to the authenticated customer. Requires authentication token."
             security:
                 - bearerAuth: []
             responses:
                 200:
-                    description: "User tickets"
+                    description: "Successfully retrieved user's tickets"
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/definitions/TicketResponse"
+                    examples:
+                        application/json:
+                            - id: 1
+                              VIN: "1HGBH41JXMN109186"
+                              service_date: "2024-01-15"
+                              service_description: "Oil change and tire rotation"
+                              customer_id: 1
+                404:
+                    description: "Customer not found"
+                    examples:
+                        application/json:
+                            error: "Could not find customer with supplied customer ID from your auth token"
+
+    /tickets/{ticket_id}/update-mechanics:
+        put:
+            tags: [tickets]
+            summary: "Update mechanics on a ticket"
+            description: "Add or remove multiple mechanics from a ticket in a single operation."
+            parameters:
+                - in: path
+                  name: ticket_id
+                  required: true
+                  type: integer
+                  description: "Unique identifier of the ticket"
+                - in: body
+                  name: body
+                  required: true
+                  schema:
+                      $ref: "#/definitions/UpdateTicketMechanicsRequest"
+            responses:
+                200:
+                    description: "Mechanics successfully updated on ticket"
+                    schema:
+                        $ref: "#/definitions/UpdateTicketMechanicsResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            VIN: "1HGBH41JXMN109186"
+                            service_date: "2024-01-15"
+                            service_description: "Oil change and tire rotation"
+                            customer_id: 1
+                            mechanics:
+                                - id: 1
+                                  name: "Jane Smith"
+                400:
+                    description: "Bad request - validation error"
+                    examples:
+                        application/json:
+                            error: "Validation error messages"
 
     /tickets/{ticket_id}/assign-mechanic/{mechanic_id}:
         put:
             tags: [tickets]
             summary: "Assign mechanic to ticket"
+            description: "Assign a single mechanic to a ticket. If the mechanic is already assigned, returns success without changes."
             parameters:
                 - in: path
                   name: ticket_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the ticket"
                 - in: path
                   name: mechanic_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the mechanic"
             responses:
                 200:
-                    description: "Mechanic assigned"
+                    description: "Mechanic successfully assigned or already assigned"
+                    schema:
+                        $ref: "#/definitions/AssignMechanicResponse"
+                    examples:
+                        application/json:
+                            message: "Mechanic successfully assigned to ticket."
+                            ticket_id: 1
+                            mechanic_id: 2
+                404:
+                    description: "Ticket or mechanic not found"
+                    examples:
+                        application/json:
+                            error: "Could not locate Ticket with id: 1"
 
     /tickets/{ticket_id}/remove-mechanic/{mechanic_id}:
         put:
             tags: [tickets]
             summary: "Remove mechanic from ticket"
+            description: "Remove a mechanic from a ticket assignment."
             parameters:
                 - in: path
                   name: ticket_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the ticket"
                 - in: path
                   name: mechanic_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the mechanic"
             responses:
                 200:
-                    description: "Mechanic removed"
+                    description: "Mechanic successfully removed from ticket"
+                    schema:
+                        $ref: "#/definitions/RemoveMechanicResponse"
+                    examples:
+                        application/json:
+                            message: "Mechanic successfully removed from ticket."
+                            ticket_id: 1
+                            mechanic_id: 2
+                404:
+                    description: "Ticket, mechanic not found, or mechanic not assigned to ticket"
+                    examples:
+                        application/json:
+                            error: "Mechanic id: 2 not found in mechanics for Ticket id: 1"
 
     /tickets/{ticket_id}/inventory:
         post:
             tags: [tickets]
             summary: "Add inventory items to ticket"
+            description: "Add one or more inventory items to a ticket with specified quantities. Duplicate items are reported but not added."
             parameters:
                 - in: path
                   name: ticket_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the ticket"
                 - in: body
                   name: body
                   required: true
@@ -268,18 +616,61 @@ paths:
             responses:
                 200:
                     description: "Inventory items added with duplicates reported"
+                    schema:
+                        $ref: "#/definitions/AddTicketInventoryItemsResponse"
+                    examples:
+                        application/json:
+                            ticket_id: 1
+                            added_inventory_ids: [1, 2]
+                            duplicate_inventory_ids: [3]
+                            requested_count: 3
+                            added_count: 2
+                            duplicate_count: 1
+                400:
+                    description: "Bad request - validation error, empty list, or duplicate IDs in payload"
+                    examples:
+                        application/json:
+                            error: "add_inventory_items key must be a non-empty list"
+                404:
+                    description: "Ticket or inventory items not found"
+                    examples:
+                        application/json:
+                            error: "Could not find ticket with ticket_id: 1"
 
     /inventory:
         get:
             tags: [inventory]
             summary: "Get all inventory"
+            description: "Retrieve a list of all inventory items. Supports pagination via query parameters."
+            parameters:
+                - in: query
+                  name: page
+                  type: integer
+                  description: "Page number for pagination"
+                - in: query
+                  name: per_page
+                  type: integer
+                  description: "Number of items per page"
             responses:
                 200:
-                    description: "Inventory list"
+                    description: "Successfully retrieved inventory list"
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/definitions/InventoryResponse"
+                    examples:
+                        application/json:
+                            - id: 1
+                              name: "Engine Oil 5W-30"
+                              price: 29.99
+                            - id: 2
+                              name: "Brake Pads"
+                              price: 45.50
 
         post:
             tags: [inventory]
             summary: "Create inventory item"
+            description: "Create a new inventory item. Item name must be unique."
             parameters:
                 - in: body
                   name: body
@@ -288,17 +679,31 @@ paths:
                       $ref: "#/definitions/InventoryCreate"
             responses:
                 201:
-                    description: "Inventory item created"
+                    description: "Inventory item successfully created"
+                    schema:
+                        $ref: "#/definitions/InventoryResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "Engine Oil 5W-30"
+                            price: 29.99
+                400:
+                    description: "Bad request - validation error, missing body, or name already exists"
+                    examples:
+                        application/json:
+                            error: "Inventory item of name 'Engine Oil 5W-30' already exists!"
 
     /inventory/{inventory_id}:
         put:
             tags: [inventory]
             summary: "Update inventory item"
+            description: "Update an existing inventory item. Full payload is required and must pass validation."
             parameters:
                 - in: path
                   name: inventory_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the inventory item"
                 - in: body
                   name: body
                   required: true
@@ -306,19 +711,43 @@ paths:
                       $ref: "#/definitions/InventoryUpdate"
             responses:
                 200:
-                    description: "Inventory updated"
+                    description: "Inventory item successfully updated"
+                    schema:
+                        $ref: "#/definitions/InventoryResponse"
+                    examples:
+                        application/json:
+                            id: 1
+                            name: "Engine Oil 5W-30"
+                            price: 34.99
+                400:
+                    description: "Bad request - validation error or missing request body"
+                    examples:
+                        application/json:
+                            error: "Missing request body"
+                404:
+                    description: "Inventory item not found"
+                    examples:
+                        application/json:
+                            error: "Could not find inventory item with id: 1"
 
         delete:
             tags: [inventory]
             summary: "Delete inventory item"
+            description: "Delete an inventory item from the system."
             parameters:
                 - in: path
                   name: inventory_id
                   required: true
                   type: integer
+                  description: "Unique identifier of the inventory item"
             responses:
                 204:
-                    description: "Inventory deleted"
+                    description: "Inventory item successfully deleted"
+                404:
+                    description: "Inventory item not found"
+                    examples:
+                        application/json:
+                            error: "Could not find inventory item with id: 1"
 
 definitions:
     LoginCredentials:
@@ -327,29 +756,72 @@ definitions:
         properties:
             email:
                 type: string
+                format: email
+                description: "Customer email address"
+                example: "john.doe@example.com"
             password:
                 type: string
+                description: "Customer password"
+                example: "*********"
 
     LoginResponse:
         type: object
         properties:
-            token:
-                type: string
-            message:
-                type: string
             status:
                 type: string
+                description: "Status of the login operation"
+                example: "success"
+            message:
+                type: string
+                description: "Login message"
+                example: "Succesfully Logged In"
+            auth_token:
+                type: string
+                description: "JWT authentication token for protected routes"
+                example: "<jwt>"
 
     CustomerCreate:
         type: object
-        required: [name, email, phone]
+        required: [name, email, phone, password]
         properties:
             name:
                 type: string
+                description: "Full name of the customer"
+                example: "John Doe"
             email:
                 type: string
+                format: email
+                description: "Unique email address of the customer"
+                example: "john.doe@example.com"
             phone:
                 type: string
+                description: "Phone number of the customer"
+                example: "555-0100"
+            password:
+                type: string
+                description: "Customer password"
+                example: "*********"
+
+    CustomerResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: "Unique identifier of the customer"
+                example: 1
+            name:
+                type: string
+                description: "Full name of the customer"
+                example: "John Doe"
+            email:
+                type: string
+                format: email
+                description: "Email address of the customer"
+                example: "john.doe@example.com"
+            phone:
+                type: string
+                description: "Phone number of the customer"
+                example: "555-0100"
 
     MechanicCreate:
         type: object
@@ -357,13 +829,65 @@ definitions:
         properties:
             name:
                 type: string
+                description: "Full name of the mechanic"
+                example: "Jane Smith"
             email:
                 type: string
+                format: email
+                description: "Unique email address of the mechanic"
+                example: "jane.smith@example.com"
             phone:
                 type: string
+                description: "Phone number of the mechanic"
+                example: "555-0200"
             salary:
                 type: number
                 format: float
+                description: "Annual salary of the mechanic"
+                example: 75000.0
+
+    MechanicResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: "Unique identifier of the mechanic"
+                example: 1
+            name:
+                type: string
+                description: "Full name of the mechanic"
+                example: "Jane Smith"
+            email:
+                type: string
+                format: email
+                description: "Email address of the mechanic"
+                example: "jane.smith@example.com"
+            phone:
+                type: string
+                description: "Phone number of the mechanic"
+                example: "555-0200"
+            salary:
+                type: number
+                format: float
+                description: "Annual salary of the mechanic"
+                example: 75000.0
+
+    MechanicWithTicketCountResponse:
+        type: object
+        properties:
+            name:
+                type: string
+                description: "Full name of the mechanic"
+                example: "Jane Smith"
+            email:
+                type: string
+                format: email
+                description: "Email address of the mechanic"
+                example: "jane.smith@example.com"
+            ticket_count:
+                type: integer
+                description: "Number of tickets assigned to this mechanic"
+                example: 15
 
     TicketCreate:
         type: object
@@ -371,12 +895,131 @@ definitions:
         properties:
             VIN:
                 type: string
+                description: "Vehicle Identification Number"
+                example: "1HGBH41JXMN109186"
             service_date:
                 type: string
+                format: date
+                description: "Date of service in YYYY-MM-DD format"
+                example: "2024-01-15"
             service_description:
                 type: string
+                description: "Description of the service to be performed"
+                example: "Oil change and tire rotation"
             customer_id:
                 type: integer
+                description: "ID of the customer who owns the vehicle"
+                example: 1
+
+    TicketResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: "Unique identifier of the ticket"
+                example: 1
+            VIN:
+                type: string
+                description: "Vehicle Identification Number"
+                example: "1HGBH41JXMN109186"
+            service_date:
+                type: string
+                format: date
+                description: "Date of service"
+                example: "2024-01-15"
+            service_description:
+                type: string
+                description: "Description of the service"
+                example: "Oil change and tire rotation"
+            customer_id:
+                type: integer
+                description: "ID of the customer who owns the vehicle"
+                example: 1
+
+    UpdateTicketMechanicsRequest:
+        type: object
+        required: [add_mechanic_ids, remove_mechanic_ids]
+        properties:
+            add_mechanic_ids:
+                type: array
+                items:
+                    type: integer
+                description: "List of mechanic IDs to add to the ticket"
+                example: [1, 2]
+            remove_mechanic_ids:
+                type: array
+                items:
+                    type: integer
+                description: "List of mechanic IDs to remove from the ticket"
+                example: [3]
+
+    UpdateTicketMechanicsResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: "Unique identifier of the ticket"
+                example: 1
+            VIN:
+                type: string
+                description: "Vehicle Identification Number"
+                example: "1HGBH41JXMN109186"
+            service_date:
+                type: string
+                format: date
+                description: "Date of service"
+                example: "2024-01-15"
+            service_description:
+                type: string
+                description: "Description of the service"
+                example: "Oil change and tire rotation"
+            customer_id:
+                type: integer
+                description: "ID of the customer who owns the vehicle"
+                example: 1
+            mechanics:
+                type: array
+                items:
+                    type: object
+                    properties:
+                        id:
+                            type: integer
+                            example: 1
+                        name:
+                            type: string
+                            example: "Jane Smith"
+
+    AssignMechanicResponse:
+        type: object
+        properties:
+            message:
+                type: string
+                description: "Status message"
+                example: "Mechanic successfully assigned to ticket."
+            ticket_id:
+                type: integer
+                description: "ID of the ticket"
+                example: 1
+            mechanic_id:
+                type: integer
+                description: "ID of the mechanic"
+                example: 2
+
+    RemoveMechanicResponse:
+        type: object
+        properties:
+            message:
+                type: string
+                description: "Status message"
+                example: "Mechanic successfully removed from ticket."
+            ticket_id:
+                type: integer
+                description: "ID of the ticket"
+                example: 1
+            mechanic_id:
+                type: integer
+                description: "ID of the mechanic"
+                example: 2
 
     AddTicketInventoryItemsRequest:
         type: object
@@ -386,6 +1029,12 @@ definitions:
                 type: array
                 items:
                     $ref: "#/definitions/TicketInventoryItemInput"
+                description: "List of inventory items to add to the ticket"
+                example:
+                    - inventory_id: 1
+                      quantity: 2
+                    - inventory_id: 2
+                      quantity: 1
 
     TicketInventoryItemInput:
         type: object
@@ -393,8 +1042,44 @@ definitions:
         properties:
             inventory_id:
                 type: integer
+                description: "ID of the inventory item"
+                example: 1
             quantity:
                 type: integer
+                description: "Quantity of the inventory item"
+                example: 2
+
+    AddTicketInventoryItemsResponse:
+        type: object
+        properties:
+            ticket_id:
+                type: integer
+                description: "ID of the ticket"
+                example: 1
+            added_inventory_ids:
+                type: array
+                items:
+                    type: integer
+                description: "List of inventory IDs that were successfully added"
+                example: [1, 2]
+            duplicate_inventory_ids:
+                type: array
+                items:
+                    type: integer
+                description: "List of inventory IDs that were already on the ticket"
+                example: [3]
+            requested_count:
+                type: integer
+                description: "Total number of inventory items requested"
+                example: 3
+            added_count:
+                type: integer
+                description: "Number of inventory items successfully added"
+                example: 2
+            duplicate_count:
+                type: integer
+                description: "Number of inventory items that were duplicates"
+                example: 1
 
     InventoryCreate:
         type: object
@@ -402,13 +1087,41 @@ definitions:
         properties:
             name:
                 type: string
+                description: "Name of the inventory item (must be unique)"
+                example: "Engine Oil 5W-30"
             price:
                 type: number
                 format: float
+                description: "Price of the inventory item"
+                example: 29.99
 
     InventoryUpdate:
         type: object
+        required: [name, price]
         properties:
+            name:
+                type: string
+                description: "Name of the inventory item"
+                example: "Engine Oil 5W-30"
             price:
                 type: number
                 format: float
+                description: "Price of the inventory item"
+                example: 34.99
+
+    InventoryResponse:
+        type: object
+        properties:
+            id:
+                type: integer
+                description: "Unique identifier of the inventory item"
+                example: 1
+            name:
+                type: string
+                description: "Name of the inventory item"
+                example: "Engine Oil 5W-30"
+            price:
+                type: number
+                format: float
+                description: "Price of the inventory item"
+                example: 29.99
