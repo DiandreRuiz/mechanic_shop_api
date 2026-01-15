@@ -6,7 +6,7 @@ import dotenv
 import jose
 import os
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(override=False)
 SECRET_KEY = os.getenv('SECRET_KEY') or "super secret secrets"
 
 def encode_token(customer_id): # uses unique pieces of info to make our tokens user specific
