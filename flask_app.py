@@ -1,7 +1,7 @@
 from app import create_app
 from app.extensions import db
 
-app = create_app("DevelopmentConfig")
+app = create_app("ProductionConfig")
 
 # Create tables in metadata
 with app.app_context():
