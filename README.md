@@ -72,7 +72,7 @@ The API uses JWT (JSON Web Tokens) for authentication. To access protected endpo
    Authorization: Bearer <your_token_here>
    ```
 
-   Tokens expire after 1 hour and must be refreshed by logging in again.
+   Tokens expire after 1 hour and must be refreshed by logging in again. In Swagger UI, click **Authorize** and paste `Bearer <your_token_here>`.
 
 ## API Endpoints
 
@@ -113,7 +113,7 @@ The API uses JWT (JSON Web Tokens) for authentication. To access protected endpo
 - `PUT /tickets/<id>` - Update a ticket (requires authentication, ownership verified)
 - `PUT /tickets/<id>/assign-mechanic/<mechanic_id>` - Assign a mechanic to a ticket
 - `PUT /tickets/<id>/remove-mechanic/<mechanic_id>` - Remove a mechanic from a ticket
-  - Rate limited: 3 per hour
+  - Rate limited: 20 per hour
 - `PUT /tickets/<id>/update-mechanics` - Bulk update mechanics (add/remove multiple)
 - `POST /tickets/<id>/inventory` - Add inventory items to a ticket
 
@@ -160,7 +160,7 @@ Protected operations (DELETE, sensitive updates) have stricter rate limits to pr
 
 ## Testing
 
-A Postman collection (`mechanic_shop.postman_collection.json`) is included for testing the API endpoints. Import it into Postman to get started.
+A Postman collection (`mechanic_shop.postman_collection.json`) is included for testing the API endpoints. Import it into Postman to get started. Swagger UI is available at `http://localhost:5001/api/docs`.
 
 ## Project Structure
 
@@ -195,6 +195,7 @@ mechanic_shop/
 ## Notes
 
 - Customer passwords are stored in plain text (consider hashing for production)
+- Customer passwords are accepted on input but not returned in API responses
 - DELETE operations on customers are commented out due to foreign key constraints
 - Token expiration is set to 1 hour
 - Pagination is optional - endpoints return all results if pagination parameters are not provided
