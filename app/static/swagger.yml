@@ -5,7 +5,7 @@ info:
     description: "This is an API for a mechanic shop, showcasing REST / CRUD principles"
     version: "1.0.0"
 
-host: "127.0.0.1:5001"
+host: "mechanic-shop-api-41q8.onrender.com"
 
 schemes:
     - http
