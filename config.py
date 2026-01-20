@@ -15,3 +15,4 @@ class TestingConfig:
 
 class ProductionConfig:
     SQLALCHEMY_DATABASE_URI = os.getenv("PROD_DATABASE_URI")
+    DEBUG = False
