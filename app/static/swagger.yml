@@ -8,7 +8,6 @@ info:
 host: "mechanic-shop-api-41q8.onrender.com"
 
 schemes:
-    - http
     - https
 
 consumes:
